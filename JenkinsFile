@@ -51,7 +51,7 @@ pipeline
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]
                 ]) {
-                    sh 'aws s3 cp FlaskProject.tar.gz s3://daniel-sela/FlaskJenkins'
+                    sh 'aws s3 cp FlaskProject.tar.gz s3://daniel-sela/FlaskJenkins/'
                 }
             }
         }

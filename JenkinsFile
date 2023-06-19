@@ -9,6 +9,7 @@ pipeline
     
     stages 
     {
+        
         stage('Cleanup') 
         {
             steps 
@@ -55,5 +56,46 @@ pipeline
                 }
             }
         }
+
+        stage('Get EC2 Instance Details') 
+        {
+            steps 
+            {
+                script 
+                {
+                    def instanceId = sh(script: "aws ec2 describe-instances --filters 'Name=tag:environment,Values=flaskTest' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+                    def publicIp = sh(script: "aws ec2 describe-instances --instance-ids ${instanceId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim()
+                    env.instanceId = instanceId
+                    env.publicIp = publicIp
+                }
+            }
+        }
+
+        stage('Pull gzip from S3 to EC2') 
+        {
+            steps 
+            {
+                withCredentials([
+                    [
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws_key',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]
+                ]) {
+                    sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicIp} 'aws s3 cp s3://daniel-sela/FlaskJenkins/FlaskProject.tar.gz .'"
+                }
+            }
+        }
+
+        stage('Run local script on EC2') 
+        {
+            steps 
+            {
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem /var/lib/jenkins/scripts/script.sh ec2-user@${env.publicIp}:~/"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicIp} 'chmod +x script.sh; ./script.sh'"
+            }
+        }
+        
     }
 }

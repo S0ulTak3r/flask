@@ -77,13 +77,14 @@ pipeline
 
         stage('Pull gzip from S3 to EC2') 
         {
-            steps {
+            steps 
+                {
 
                     sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicIp} 'aws s3 cp s3://daniel-sela/FlaskJenkins/FlaskProject.tar.gz .'"
                 }
         }
 
-        stage('Run local script on EC2') 
+        stage('Run local script on EC2->Unzips and Runs the flask LIVE port 5000') 
         {
             steps 
             {

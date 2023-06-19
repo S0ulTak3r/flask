@@ -61,13 +61,24 @@ pipeline
         {
             steps 
             {
-                script 
+                withCredentials([
+                    [
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws_key',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]
+                ]) 
                 {
-                    def instanceId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:environment,Values=flaskTest' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
-                    def publicIp = sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim()
-                    env.instanceId = instanceId
-                    env.publicIp = publicIp
+                    script 
+                    {
+                        def instanceId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:environment,Values=flaskTest' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+                        def publicIp = sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim()
+                        env.instanceId = instanceId
+                        env.publicIp = publicIp
+                    }
                 }
+
             }
         }
 

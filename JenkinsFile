@@ -44,16 +44,9 @@ pipeline
         {
             steps 
             {
-                withCredentials([
-                    [
-                        $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: 'aws_key',
-                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                    ]
-                ]) {
+
                     sh 'aws s3 cp FlaskProject.tar.gz s3://daniel-sela/FlaskJenkins/'
-                }
+                
             }
         }
 
@@ -82,23 +75,12 @@ pipeline
             }
         }
 
-        stage('Pull gzip from S3 to EC2') {
+        stage('Pull gzip from S3 to EC2') 
+        {
             steps {
-                withCredentials([
-                    [
-                        $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: 'aws_key',
-                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                    ]
-                ]) {
-                    sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicIp} 'sudo yum install -y awscli'"
-                    sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicIp} 'mkdir -p ~/.aws'"
-                    sh "scp -i /var/lib/jenkins/.ssh/Daniel.pem ~/.aws/credentials ec2-user@${env.publicIp}:~/.aws/"
-                    sh "scp -i /var/lib/jenkins/.ssh/Daniel.pem ~/.aws/config ec2-user@${env.publicIp}:~/.aws/"
+
                     sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicIp} 'aws s3 cp s3://daniel-sela/FlaskJenkins/FlaskProject.tar.gz .'"
                 }
-            }
         }
 
         stage('Run local script on EC2') 

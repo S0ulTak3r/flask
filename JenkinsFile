@@ -14,6 +14,7 @@ pipeline
         {
             steps 
             {
+                //removing unnecessary files
                 echo 'Performing cleanup...'
                 sh 'rm -rf *'
             }
@@ -23,6 +24,7 @@ pipeline
         {
             steps 
             {
+                //cloning the project
                 echo 'Cloning repository...'
                 sh 'git clone https://github.com/S0ulTak3r/flask.git'
                 sh 'ls'
@@ -33,6 +35,7 @@ pipeline
         {
             steps 
             {
+                //Build-Tarzip
                 echo 'Building...'
                 echo 'Packaging...'
                 sh 'tar -czvf FlaskProject.tar.gz flask'
@@ -44,8 +47,8 @@ pipeline
         {
             steps 
             {
-
-                    sh 'aws s3 cp FlaskProject.tar.gz s3://daniel-sela/FlaskJenkins/'
+                //Upload to S3
+                sh 'aws s3 cp FlaskProject.tar.gz s3://daniel-sela/FlaskJenkins/'
                 
             }
         }

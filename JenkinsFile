@@ -10,7 +10,7 @@ pipeline
     stages 
     {
         
-        stage('Cleanup') 
+        stage('Cleanup-Workspace') 
         {
             steps 
             {
@@ -19,7 +19,7 @@ pipeline
             }
         }
         
-        stage('Clone') 
+        stage('Clone-Project') 
         {
             steps 
             {
@@ -29,7 +29,7 @@ pipeline
             }
         }
         
-        stage('Build') 
+        stage('Build-Tarzip Project') 
         {
             steps 
             {
@@ -40,7 +40,7 @@ pipeline
             }
         }
         
-        stage('Upload to S3') 
+        stage('Upload To S3-daniel-sela') 
         {
             steps 
             {
@@ -50,7 +50,7 @@ pipeline
             }
         }
 
-        stage('Get EC2 Instance Details') 
+        stage('Run Test Server + Get His Details') 
         {
             steps 
             {
@@ -65,7 +65,20 @@ pipeline
                 {
                     script 
                     {
-                        def instanceId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+                        def instanceId = sh( script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId",returnStdout: true).trim()
+
+                        if (instanceId) 
+                        {
+                            // Instance is stopped, start it
+                            sh(script: "aws ec2 start-instances --region eu-north-1 --instance-ids ${instanceId}")
+                            // Wait for the instance to start running
+                            sh(script: "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${instanceId}")
+                        } 
+                        else 
+                        {
+                            // No stopped instance found, assume it's already running
+                            instanceId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId",returnStdout: true).trim()
+                        }
                         def publicIp = sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim()
                         env.instanceId = instanceId
                         env.publicIp = publicIp
@@ -75,16 +88,17 @@ pipeline
             }
         }
 
-        stage('Pull gzip from S3 to EC2') 
+        stage('Pull gzip from S3 to Test Server') 
         {
             steps 
                 {
 
                     sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicIp} 'aws s3 cp s3://daniel-sela/FlaskJenkins/FlaskProject.tar.gz .'"
+
                 }
         }
 
-        stage('Run local script on EC2->Unzips and Runs the flask LIVE port 5000') 
+        stage('Run Project On Test Instance') 
         {
             steps 
             {
@@ -92,6 +106,54 @@ pipeline
                 sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicIp} 'chmod +x script.sh; ./script.sh'"
             }
         }
-        
+
+        stage('Run Test On Test Instance')
+        {
+            steps
+            {
+                sh "curl http://${env.publicIp}:5000"
+            }
+        }
+
+        stage('Closing Test Server If Successful')
+        {
+            steps
+            {
+                sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${env.instanceId}"
+                sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${env.instanceId}"
+            }
+        }
+
+        stage('Deploy To Production')
+        {
+            steps
+            {
+                def instanceId = sh( script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId",returnStdout: true).trim()
+                // Check If Production Server Is Running
+                if(instanceId)
+                {
+                    // Instance is stopped, start it
+                    sh(script: "aws ec2 start-instances --region eu-north-1 --instance-ids ${instanceId}")
+                    // Wait for the instance to start running
+                    sh(script: "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${instanceId}")
+                }
+                else
+                {
+                    // No stopped instance found, assume it's already running
+                    instanceId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId",returnStdout: true).trim()
+                }
+                def publicIp = sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim()
+
+                //Update Production Server, upload the new tar.gz file
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicIp} 'aws s3 cp s3://daniel-sela/FlaskJenkins/FlaskProject.tar.gz .'"
+
+                //Copy script to production server
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem /var/lib/jenkins/scripts/script.sh ec2-user@${env.publicIp}:~/"
+
+                //Run script on production server
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicIp} 'chmod +x script.sh; ./script.sh'"
+                
+            }
+        }
     }
 }

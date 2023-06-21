@@ -128,7 +128,7 @@ pipeline
         {
             steps
             {
-                def instanceDeploy = sh( script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId",returnStdout: true).trim()
+                def instanceDeploy = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId",returnStdout: true).trim()
                 // Check If Production Server Is Running
                 if(instanceDeploy)
                 {

@@ -10,8 +10,7 @@ images = [
     "https://media.tenor.com/cStcTpCulccAAAAd/patrick-bateman-sigma.gif",
 ]
 
-sb;lmsm;ldfn;k
-@app.route("dfkf nkdfkn/")
+@app.route("/")
 def index():
     url = random.choice(images)
     return render_template("index.html", url=url)

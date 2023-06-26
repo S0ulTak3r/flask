@@ -37,7 +37,7 @@ pipeline
             {
                 //Build-Tarzip
                 echo 'Building...'
-                sh 'docker image build -t s0ultak3r/dockerflask ./flask/PythonFlask/docker-curriculum/flask-app'
+                sh 'docker image build -t s0ultak3r/dockerflask flask/PythonFlask/docker-curriculum/flask-app/'
                 echo 'Pushing to DockerHub'
                 sh 'docker push s0ultak3r/dockerflask'
             }

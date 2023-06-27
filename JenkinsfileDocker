@@ -121,7 +121,7 @@ pipeline
         {
             steps 
             {
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker containter prune -f'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'sudo docker container prune --force'"
                 sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker container run --rm -d -p 5000:5000 s0ultak3r/dockerflask'"
             }
         }
@@ -158,7 +158,7 @@ pipeline
                         echo 'Existing container found on the production server.'
                         echo "Stopping and deleting the existing container..."
                         sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker stop ${containerId}'"
-                        sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker container prune --force'"
+                        sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'sudo docker container prune --force'"
                     }
                     
                     echo 'Running new container on the production server...'

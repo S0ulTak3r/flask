@@ -142,8 +142,32 @@ pipeline
         stage('Deployment') {
             steps 
             {
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker pull s0ultak3r/dockerflask'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker container run -d -p 5003:5000 s0ultak3r/dockerflask'"
+                echo 'Deploying to the production server...'
+                script 
+                {
+                    def containerId = sh(script: "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker ps -aqf \"name=flask-container\"'", returnStdout: true).trim()
+                    
+                    // Check if container is already running on the production server
+                    if (containerId) 
+                    {
+                        echo 'Existing container found on the production server.'
+                        echo "Stopping and deleting the existing container..."
+                        sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker stop ${containerId}'"
+                        sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker rm ${containerId}'"
+                    }
+                    
+                    echo 'Running new container on the production server...'
+                    def newContainerId = sh(script: "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker run -d -p 5003:5000 --name flask-container s0ultak3r/dockerflask'", returnStdout: true).trim()
+                    
+                    if (newContainerId) 
+                    {
+                        echo "New container started with ID: ${newContainerId}"
+                    } 
+                    else 
+                    {
+                        error "Failed to start the container on the production server."
+                    }
+                }
             }
         }
     }

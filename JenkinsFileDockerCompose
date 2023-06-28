@@ -131,7 +131,9 @@ pipeline
             {
                 echo "cleaning"
                 sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker container prune --force'"
-                echo "pulling and running"
+                echo "pulling the relevant image"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker-compose pull'"
+                echo "running"
                 sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker-compose up -d'"
             }
         }
@@ -162,6 +164,8 @@ pipeline
             steps 
             {
                 echo 'Deploying to the production server...'
+                echo "pulling updated flask"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker-compose pull'"
                 echo "Closing Old Flask..."
                 sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker-compose down'"
                 echo "Running Updates Flask..."

@@ -9,33 +9,32 @@ pipeline
     
     stages 
     {
-        
-        stage('Cleanup-Workspace') 
+        stage('Cleanup') 
         {
             steps 
             {
-                //removing unnecessary files
+                //Removes Unnecessary files
                 echo 'Performing cleanup...'
                 sh 'rm -rf *'
             }
         }
         
-        stage('Clone-Project') 
+        stage('Clone') 
         {
-            steps 
+            steps
             {
-                //cloning the project
+                //clonning from github to workspace
                 echo 'Cloning repository...'
                 sh 'git clone https://github.com/S0ulTak3r/flask.git'
                 sh 'ls'
             }
         }
         
-        stage('Build-Tarzip Project') 
+        stage('Build') 
         {
             steps 
             {
-                //Build-Tarzip
+                //stage building
                 echo 'Building...'
                 echo 'Packaging...'
                 sh 'tar -czvf FlaskProject.tar.gz flask'
@@ -43,123 +42,102 @@ pipeline
             }
         }
         
-        stage('Upload To S3-daniel-sela') 
+        stage('Upload to S3') 
         {
             steps 
             {
-                //Upload to S3
+                //upload project to s3
                 sh 'aws s3 cp FlaskProject.tar.gz s3://daniel-sela/FlaskJenkins/'
-                
             }
         }
 
-        stage('Run Test Server + Get His Details') 
+        stage('Get Test+Prod Instance Details')
         {
             steps 
             {
-                withCredentials([
-                    [
-                        $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: 'aws_key',
-                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                    ]
-                ]) 
+                //pulls IP of test instance by automatical means
+                script 
                 {
-                    script 
+                    def instanceTestId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+                    def instanceProdId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+                    
+                    if(instanceTestId)
                     {
-                        def instanceId = sh( script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId",returnStdout: true).trim()
-
-                        if (instanceId) 
-                        {
-                            // Instance is stopped, start it
-                            sh(script: "aws ec2 start-instances --region eu-north-1 --instance-ids ${instanceId}")
-                            // Wait for the instance to start running
-                            sh(script: "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${instanceId}")
-                        } 
-                        else 
-                        {
-                            // No stopped instance found, assume it's already running
-                            instanceId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId",returnStdout: true).trim()
-                        }
-                        def publicIp = sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim()
-                        env.instanceId = instanceId
-                        env.publicIp = publicIp
+                        //Test Not Running
+                        sh (script: "aws ec2 start-instances --region eu-north-1 --instance-ids ${instanceTestId}")
+                        sh (script: "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${instanceTestId}")
                     }
-                }
+                    else
+                    {
+                        //Gather Id with Running state
+                        instanceTestId= sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+                    }
+                    def publicTestIp = sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceTestId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim()
+                    env.instanceTestId = instanceTestId
+                    env.publicTestIp = publicTestIp
 
+
+                    if(instanceProdId)
+                    {
+                        //prod not running
+                        sh (script: "aws ec2 start-instances --region eu-north-1 --instance-ids ${instanceProdId}")
+                        sh (script: "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${instanceProdId}")
+                    }
+                    else
+                    {
+                        //Gather Id with Running state
+                        instanceProdId= sh (script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+                    }
+                    def publicProdIp =sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceProdId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim() 
+                    env.instanceProdId=instanceProdId
+                    env.publicProdIp=publicProdIp
+                }
             }
         }
 
         stage('Pull gzip from S3 to Test Server') 
         {
             steps 
-                {
-
-                    sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicIp} 'aws s3 cp s3://daniel-sela/FlaskJenkins/FlaskProject.tar.gz .'"
-
-                }
+            {
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'aws s3 cp s3://daniel-sela/FlaskJenkins/FlaskProject.tar.gz .'"
+            }
         }
 
-        stage('Run Project On Test Instance') 
+        stage('Run Script On Test-Start the Project') 
         {
             steps 
             {
-                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem /var/lib/jenkins/scripts/script.sh ec2-user@${env.publicIp}:~/"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicIp} 'chmod +x script.sh; ./script.sh'"
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem /var/lib/jenkins/scripts/script.sh ec2-user@${env.publicTestIp}:~/"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'bash -xe ~/script.sh'"
             }
         }
 
-        stage('Run Test On Test Instance')
+        stage('Test') 
         {
-            steps
+            steps 
             {
-                sh "curl http://${env.publicIp}:5000"
+                sh "curl http://${env.publicTestIp}:5000"
+            }
+        }
+        
+        stage('Closing test server- if success') 
+        {
+            steps 
+            {
+                sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${env.instanceTestId}"
+                sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${env.instanceTestId}"
             }
         }
 
-        stage('Closing Test Server If Successful')
+
+        
+        stage('Deployment') 
         {
-            steps
+            steps 
             {
-                sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${env.instanceId}"
-                sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${env.instanceId}"
-            }
-        }
-
-        stage('Deploy To Production')
-        {
-            steps
-            {
-                script
-                {
-                    def instanceDeploy = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId",returnStdout: true).trim()
-                    // Check If Production Server Is Running
-                    if(instanceDeploy)
-                    {
-                        // Instance is stopped, start it
-                        sh(script: "aws ec2 start-instances --region eu-north-1 --instance-ids ${instanceDeploy}")
-                        // Wait for the instance to start running
-                        sh(script: "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${instanceDeploy}")
-                    }
-                    else
-                    {
-                        // No stopped instance found, assume it's already running
-                        instanceDeploy = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId",returnStdout: true).trim()
-                    }
-                    def publicDeployIP = sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceDeploy} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim()
-
-                    //Update Production Server, upload the new tar.gz file
-                    sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${publicDeployIP} 'aws s3 cp s3://daniel-sela/FlaskJenkins/FlaskProject.tar.gz .'"
-
-                    //Copy script to production server
-                    sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem /var/lib/jenkins/scripts/script.sh ec2-user@${publicDeployIP}:~/"
-
-                    //Run script on production server
-                    sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${publicDeployIP} 'chmod +x script.sh; ./script.sh'"
-                
-                }
-                
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'aws s3 cp s3://daniel-sela/FlaskJenkins/FlaskProject.tar.gz .'"
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem /var/lib/jenkins/scripts/script.sh ec2-user@${env.publicProdIp}:~/"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'bash -xe ~/script.sh'"
             }
         }
     }

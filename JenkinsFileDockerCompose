@@ -113,10 +113,14 @@ pipeline
 
         stage('Fetch Docker-Compose-File to Test+Prod')
         {
-            echo "Transferring DockerCompose to Test server"
-            sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ./flask/docker-compose.yml ec2-user@${env.publicTestIp}:."
-            echo "Transferring DockerCompose to Prod Server"
-            sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ./flask/docker-compose.yml ec2-user@${env.publicProdIp}:."
+            steps
+            {
+                echo "Transferring DockerCompose to Test server"
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ./flask/docker-compose.yml ec2-user@${env.publicTestIp}:."
+                echo "Transferring DockerCompose to Prod Server"
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ./flask/docker-compose.yml ec2-user@${env.publicProdIp}:."
+            }
+            
         }
 
         stage('Pull +Run Flask Server On Test Instance') 

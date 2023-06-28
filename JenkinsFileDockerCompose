@@ -34,12 +34,14 @@ pipeline
         {
             steps 
             {
-                //stage building
-                echo 'Building...'
-                echo ' pull docker'
-                sh 'docker image build -t s0ultak3r/dockerflask flask/PythonFlask/docker-curriculum/flask-app/'
-                echo 'pushing to dockerhub'
-                sh 'docker push s0ultak3r/dockerflask'
+                dir('./flask')
+                {
+                    //stage building
+                    echo 'Building Updated Docker...'
+                    sh 'docker-compose build'
+                    echo 'pushing to dockerhub'
+                    sh 'docker-compose push'
+                }
             }
         }
         
@@ -109,22 +111,22 @@ pipeline
             }
         }
 
-        stage('Pull from dockerhub to test server + install docker') 
+        stage('Fetch Docker-Compose-File to Test+Prod')
         {
-            steps 
-            {
-
-                echo ' pull docker'
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker pull s0ultak3r/dockerflask'"
-            }
+            echo "Transferring DockerCompose to Test server"
+            sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ./flask/docker-compose.yml ec2-user@${env.publicTestIp}:."
+            echo "Transferring DockerCompose to Prod Server"
+            sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ./flask/docker-compose.yml ec2-user@${env.publicProdIp}:."
         }
 
-        stage('Run 1 container to test server') 
+        stage('Pull +Run Flask Server On Test Instance') 
         {
             steps 
             {
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'sudo docker container prune --force'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker container run --rm -d -p 5000:5000 s0ultak3r/dockerflask'"
+                echo "cleaning"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker container prune --force'"
+                echo "pulling and running"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker-compose up -d'"
             }
         }
 
@@ -139,6 +141,9 @@ pipeline
         stage('Closing test server- if success') {
             steps 
             {
+                echo "Closing App Containers..."
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker-compose down'"
+                echo "Closing Test Instance..."
                 sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${env.instanceTestId}"
                 sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${env.instanceTestId}"
             }
@@ -146,36 +151,15 @@ pipeline
 
 
         
-        stage('Deployment') {
+        stage('Deployment') 
+        {
             steps 
             {
                 echo 'Deploying to the production server...'
-                script 
-                {
-                    def containerId = sh(script: "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker container prune --force'")
-                    def containerId = sh(script: "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker ps -aqf \"name=flask-container\"'", returnStdout: true).trim()
-                    def containerIdSecondway= sh(script: "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker ps | grep flask-container | aws {'print $1'}'" , returnStdout: true).trim()
-                    // Check if container is already running on the production server
-                    if (containerId) 
-                    {
-                        echo 'Existing container found on the production server.'
-                        echo "Stopping and deleting the existing container..."
-                        sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker stop ${containerId}'"
-                        sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'sudo docker container prune --force'"
-                    }
-                    
-                    echo 'Running new container on the production server...'
-                    def newContainerId = sh(script: "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker run -d -p 5003:5000 --name flask-container s0ultak3r/dockerflask'", returnStdout: true).trim()
-                    
-                    if (newContainerId) 
-                    {
-                        echo "New container started with ID: ${newContainerId}"
-                    } 
-                    else 
-                    {
-                        error "Failed to start the container on the production server."
-                    }
-                }
+                echo "Closing Old Flask..."
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker-compose down'"
+                echo "Running Updates Flask..."
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker-compose up -d'"
             }
         }
     }

@@ -148,7 +148,7 @@ pipeline
             steps 
             {
                 echo "Closing App Containers..."
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker-compose down'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker-compose down --no-build'"
                 echo "Closing Test Instance..."
                 sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${env.instanceTestId}"
                 sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${env.instanceTestId}"
@@ -163,7 +163,7 @@ pipeline
             {
                 echo 'Deploying to the production server...'
                 echo "Closing Old Flask..."
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker-compose down'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker-compose down --no-build'"
                 echo "Pulling + Running Updates Flask..."
                 sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker-compose up --no-build -d'"
             }

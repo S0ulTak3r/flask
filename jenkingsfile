@@ -25,7 +25,7 @@ pipeline
             {
                 //clonning from github to workspace
                 echo 'Cloning repository...'
-                sh 'git clone https://github.com/S0ulTak3r/flask.git'
+                sh 'git clone https://github.com/oksthefox/flask.git'
                 sh 'ls'
             }
         }
@@ -47,7 +47,7 @@ pipeline
             steps 
             {
                 //upload project to s3
-                sh 'aws s3 cp FlaskProject.tar.gz s3://daniel-sela/FlaskJenkins/'
+                sh 'aws s3 cp FlaskProject.tar.gz s3://oksana-sela/FlaskJenkins/'
             }
         }
 
@@ -99,7 +99,7 @@ pipeline
         {
             steps 
             {
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'aws s3 cp s3://daniel-sela/FlaskJenkins/FlaskProject.tar.gz .'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'aws s3 cp s3://oksana-sela/FlaskJenkins/FlaskProject.tar.gz .'"
             }
         }
 
@@ -107,8 +107,8 @@ pipeline
         {
             steps 
             {
-                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem /var/lib/jenkins/scripts/script.sh ec2-user@${env.publicTestIp}:~/"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'bash -xe ~/script.sh'"
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem /var/lib/jenkins/scripts/script.sh ec2-user@${env.publicTestIp}:~/"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'bash -xe ~/script.sh'"
             }
         }
 
@@ -120,8 +120,7 @@ pipeline
             }
         }
         
-        stage('Closing test server- if success') 
-        {
+        stage('Closing test server- if success') {
             steps 
             {
                 sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${env.instanceTestId}"
@@ -131,13 +130,12 @@ pipeline
 
 
         
-        stage('Deployment') 
-        {
+        stage('Deployment') {
             steps 
             {
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'aws s3 cp s3://daniel-sela/FlaskJenkins/FlaskProject.tar.gz .'"
-                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem /var/lib/jenkins/scripts/script.sh ec2-user@${env.publicProdIp}:~/"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'bash -xe ~/script.sh'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'aws s3 cp s3://oksana-sela/FlaskJenkins/FlaskProject.tar.gz .'"
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem /var/lib/jenkins/scripts/script.sh ec2-user@${env.publicProdIp}:~/"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'bash -xe ~/script.sh'"
             }
         }
     }

@@ -1,0 +1,257 @@
+pipeline 
+{
+    agent any
+    
+    triggers 
+    {
+        pollSCM('*/1 * * * *')
+    }
+    
+    stages 
+    {
+        
+        stage('Changes Check') 
+        {
+            steps {
+                script 
+                {
+                    def changeSets = currentBuild.changeSets
+                    def modifiedFiles = []
+                    for(changeSet in changeSets) {
+                        for(item in changeSet) {
+                            modifiedFiles += item.getAffectedPaths()
+                        }
+                    }
+                    modifiedFiles = modifiedFiles.minus('Jenkinsfile-dockercompose2')
+
+                    if (modifiedFiles.isEmpty()) {
+                        println('Skipping pipeline execution as the only change is to the Jenkinsfile.')
+                        env.NO_CHANGES = "true"
+                    }
+                }
+            }
+        }
+
+        stage('Cleanup') 
+        {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                //Removes Unnecessary files
+                echo 'Performing cleanup...'
+                sh 'rm -rf *'
+                sh "docker images | grep -w 'oksthefox/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi oksthefox/dockerflask:{}"
+            }
+        }
+        
+        stage('Clone') 
+        {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps
+            {
+                //clonning from github to workspace
+                echo 'Cloning repository...'
+                sh 'git clone https://github.com/oksthefox/flask.git'
+                sh 'ls'
+            }
+        }
+        
+        stage('Build-create docker image and push') 
+        {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                dir('./flask/flask-app/') 
+                {
+                    // Stage building
+                    echo 'Building flask'
+                    sh "docker build -t oksthefox/dockerflask:latest -t oksthefox/dockerflask:1.${BUILD_NUMBER} ."
+                    sh "docker push --all-tags oksthefox/dockerflask"
+                }
+            }
+        }
+        
+        stage('Build-create docker image and pushaaaa') 
+        {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                dir('./flask/mysql/')
+                {
+                    echo 'building db'
+                    sh "docker build -t oksthefox/dockerdb:latest -t oksthefox/dockerdb:1.${BUILD_NUMBER} ."
+                    sh "docker push --all-tags oksthefox/dockerdb"
+                }
+            }
+        }
+
+        stage('Get Test+Prod Instance Details + install docker')
+        {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                //pulls IP of test instance by automatical means
+                script 
+                {
+                    def instanceTestId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+                    def instanceProdId = sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=stopped' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+                    
+                    if(instanceTestId)
+                    {
+                        //Test Not Running
+                        sh (script: "aws ec2 start-instances --region eu-north-1 --instance-ids ${instanceTestId}")
+                        sh (script: "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${instanceTestId}")
+                    }
+                    else
+                    {
+                        //Gather Id with Running state
+                        instanceTestId= sh(script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask1' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+                    }
+                    def publicTestIp = sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceTestId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim()
+                    env.instanceTestId = instanceTestId
+                    env.publicTestIp = publicTestIp
+
+
+                    if(instanceProdId)
+                    {
+                        //prod not running
+                        sh (script: "aws ec2 start-instances --region eu-north-1 --instance-ids ${instanceProdId}")
+                        sh (script: "aws ec2 wait instance-running --region eu-north-1 --instance-ids ${instanceProdId}")
+                    }
+                    else
+                    {
+                        //Gather Id with Running state
+                        instanceProdId= sh (script: "aws ec2 describe-instances --region eu-north-1 --filters 'Name=tag:servernumber,Values=flask2' 'Name=instance-state-name,Values=running' | jq -r .Reservations[].Instances[].InstanceId", returnStdout: true).trim()
+                    }
+                    def publicProdIp =sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceProdId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim() 
+                    env.instanceProdId=instanceProdId
+                    env.publicProdIp=publicProdIp
+
+
+                     
+                     
+                }
+            }
+        }
+
+        stage("install test+prod docker")
+        {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps
+            {
+                dir('/var/lib/jenkins/ansible-docker-jenkins')
+                {
+                    echo "installing all needed"
+                    sh "ansible-playbook -i aws_ec2.yml installallcomponents.yml"
+                }
+                
+            }
+        }
+
+        stage('fetch docker-compose file to test+prod')
+        {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps
+            {
+                echo "transferring docker-compose to test"
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ./flask/docker-compose.yml ec2-user@${env.publicTestIp}:."
+                echo "transferring docker-compose to prod"
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ./flask/docker-compose.yml ec2-user@${env.publicProdIp}:."
+            }
+        }
+
+        stage('Pull + Run from dockerhub to test server') 
+        {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                echo "cleaning"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'sudo docker container prune --force'"
+                echo 'pull +run docker'
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'docker-compose up --no-build -d'"
+            }
+        }
+
+
+        stage('Test') 
+        {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                sh "curl http://${env.publicTestIp}:5000"
+            }
+        }
+        
+        stage('Closing test server- if success') 
+        {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                echo "closing container"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'docker-compose down --no-build'"
+                echo "stopping test instance"
+                sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${env.instanceTestId}"
+                sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${env.instanceTestId}"
+            }
+        }
+
+
+        
+        stage('Deployment') 
+        {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                echo 'Deploying to the production server...'
+                echo "Shutting Down Old Flask..."
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'docker-compose down --no-build'"
+                echo "Running Updated Flask..."
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'docker-compose up --no-build -d'"
+            }
+        }
+    }
+}

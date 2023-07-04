@@ -25,7 +25,7 @@ pipeline
             {
                 //clonning from github to workspace
                 echo 'Cloning repository...'
-                sh 'git clone https://github.com/S0ulTak3r/flask.git'
+                sh 'git clone https://github.com/oksthefox/flask.git'
                 sh 'ls'
             }
         }
@@ -37,16 +37,16 @@ pipeline
                 dir('./flask')
                 {
                     //stage building
-                    echo 'Building Updated Docker...'
+                    echo 'Building docker'
                     sh 'docker-compose build'
                     echo 'pushing to dockerhub'
-                    sh 'docker-compose push'
+                    sh 'docker-compose push' 
                 }
             }
         }
         
 
-        stage('Get Test+Prod Instance Details')
+        stage('Get Test+Prod Instance Details + install docker')
         {
             steps 
             {
@@ -86,55 +86,59 @@ pipeline
                     def publicProdIp =sh(script: "aws ec2 describe-instances --region eu-north-1 --instance-ids ${instanceProdId} | jq -r .Reservations[].Instances[].PublicIpAddress", returnStdout: true).trim() 
                     env.instanceProdId=instanceProdId
                     env.publicProdIp=publicProdIp
+
+
+                     
+                     
                 }
             }
         }
 
-        stage("install docker on both test+prod")
+        stage("install test+prod docker")
         {
             steps
             {
                 echo 'installing docker...'
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'sudo yum update -y'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'sudo yum install docker -y'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'sudo yum install -y python3-pip'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'pip3 install docker-compose'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'sudo service docker start'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'sudo chkconfig docker on'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'sudo usermod -aG docker ec2-user'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'sudo yum update -y'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'sudo yum install docker -y'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'sudo yum install -y python3-pip'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'pip3 install docker-compose'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'sudo service docker start'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'sudo chkconfig docker on'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'sudo usermod -aG docker ec2-user'"
                 echo 'installing docker...'
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'sudo yum update -y'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'sudo yum install docker -y'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'sudo yum install -y python3-pip'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'pip3 install docker-compose'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'sudo service docker start'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'sudo chkconfig docker on'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'sudo usermod -aG docker ec2-user'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'sudo yum update -y'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'sudo yum install docker -y'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'sudo yum install -y python3-pip'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'pip3 install docker-compose'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'sudo service docker start'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'sudo chkconfig docker on'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'sudo usermod -aG docker ec2-user'"
             }
         }
 
-        stage('Fetch Docker-Compose-File to Test+Prod')
+        stage('fetch docker-compose file to test+prod')
         {
             steps
             {
-                echo "Transferring DockerCompose to Test server"
-                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ./flask/docker-compose.yml ec2-user@${env.publicTestIp}:."
-                echo "Transferring DockerCompose to Prod Server"
-                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ./flask/docker-compose.yml ec2-user@${env.publicProdIp}:."
+                echo "transferring docker-compose to test"
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ./flask/docker-compose.yml ec2-user@${env.publicTestIp}:."
+                echo "transferring docker-compose to prod"
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ./flask/docker-compose.yml ec2-user@${env.publicProdIp}:."
             }
-            
         }
 
-        stage('Pull +Run Flask Server On Test Instance') 
+        stage('Pull + Run from dockerhub to test server') 
         {
             steps 
             {
                 echo "cleaning"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker container prune --force'"
-                echo "pulling + running"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker-compose up --no-build -d'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'sudo docker container prune --force'"
+                echo 'pull +run docker'
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'docker-compose up --no-build -d'"
             }
         }
+
 
         stage('Test') 
         {
@@ -144,12 +148,13 @@ pipeline
             }
         }
         
-        stage('Closing test server- if success') {
+        stage('Closing test server- if success') 
+        {
             steps 
             {
-                echo "Closing App Containers..."
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker-compose down --no-build'"
-                echo "Closing Test Instance..."
+                echo "closing container"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'docker-compose down --no-build'"
+                echo "stopping test instance"
                 sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${env.instanceTestId}"
                 sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${env.instanceTestId}"
             }
@@ -162,10 +167,10 @@ pipeline
             steps 
             {
                 echo 'Deploying to the production server...'
-                echo "Closing Old Flask..."
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker-compose down --no-build'"
-                echo "Pulling + Running Updates Flask..."
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker-compose up --no-build -d'"
+                echo "Shutting Down Old Flask..."
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'docker-compose down --no-build'"
+                echo "Running Updated Flask..."
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'docker-compose up --no-build -d'"
             }
         }
     }

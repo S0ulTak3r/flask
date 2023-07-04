@@ -25,7 +25,7 @@ pipeline
             {
                 //clonning from github to workspace
                 echo 'Cloning repository...'
-                sh 'git clone https://github.com/oksthefox/flask.git'
+                sh 'git clone https://github.com/S0ulTak3r/flask.git'
                 sh 'ls'
             }
         }
@@ -37,9 +37,9 @@ pipeline
                 //stage building
                 echo 'Building...'
                 echo ' pull docker'
-                sh 'docker image build -t oksthefox/dockerflask flask/flask-app/'
+                sh 'docker image build -t s0ultak3r/dockerflask flask/flask-app/'
                 echo 'pushing to dockerhub'
-                sh 'docker push oksthefox/dockerflask'
+                sh 'docker push s0ultak3r/dockerflask'
             }
         }
         
@@ -120,7 +120,7 @@ pipeline
             steps 
             {
                 echo 'pull docker'
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'docker pull oksthefox/dockerflask'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'docker pull s0ultak3r/dockerflask'"
             }
         }
 
@@ -129,7 +129,7 @@ pipeline
             steps 
             {
                 sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'sudo docker container prune --force'"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'docker container run --rm -d -p 5000:5000 oksthefox/dockerflask'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'docker container run --rm -d -p 5000:5000 s0ultak3r/dockerflask'"
             }
         }
 
@@ -172,7 +172,7 @@ pipeline
                     }
                     
                     echo 'Running new container on the production server...'
-                    def newContainerId = sh(script: "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'docker run -d -p 5003:5000 --name flask-container oksthefox/dockerflask'", returnStdout: true).trim()
+                    def newContainerId = sh(script: "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'docker run -d -p 5003:5000 --name flask-container s0ultak3r/dockerflask'", returnStdout: true).trim()
                     
                     if (newContainerId) 
                     {

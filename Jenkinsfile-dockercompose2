@@ -44,7 +44,7 @@ pipeline
                 //Removes Unnecessary files
                 echo 'Performing cleanup...'
                 sh 'rm -rf *'
-                sh "docker images | grep -w 'oksthefox/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi oksthefox/dockerflask:{}"
+                sh "docker images | grep -w 's0ultak3r/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerflask:{}"
             }
         }
         
@@ -59,7 +59,7 @@ pipeline
             {
                 //clonning from github to workspace
                 echo 'Cloning repository...'
-                sh 'git clone https://github.com/oksthefox/flask.git'
+                sh 'git clone https://github.com/S0ulTak3r/flask.git'
                 sh 'ls'
             }
         }
@@ -77,8 +77,8 @@ pipeline
                 {
                     // Stage building
                     echo 'Building flask'
-                    sh "docker build -t oksthefox/dockerflask:latest -t oksthefox/dockerflask:1.${BUILD_NUMBER} ."
-                    sh "docker push --all-tags oksthefox/dockerflask"
+                    sh "docker build -t s0ultak3r/dockerflask:latest -t s0ultak3r/dockerflask:1.${BUILD_NUMBER} ."
+                    sh "docker push --all-tags s0ultak3r/dockerflask"
                 }
             }
         }
@@ -95,8 +95,8 @@ pipeline
                 dir('./flask/mysql/')
                 {
                     echo 'building db'
-                    sh "docker build -t oksthefox/dockerdb:latest -t oksthefox/dockerdb:1.${BUILD_NUMBER} ."
-                    sh "docker push --all-tags oksthefox/dockerdb"
+                    sh "docker build -t s0ultak3r/dockerdb:latest -t s0ultak3r/dockerdb:1.${BUILD_NUMBER} ."
+                    sh "docker push --all-tags s0ultak3r/dockerdb"
                 }
             }
         }
@@ -182,9 +182,9 @@ pipeline
             steps
             {
                 echo "transferring docker-compose to test"
-                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ./flask/docker-compose.yml ec2-user@${env.publicTestIp}:."
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ./flask/docker-compose.yml ec2-user@${env.publicTestIp}:."
                 echo "transferring docker-compose to prod"
-                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ./flask/docker-compose.yml ec2-user@${env.publicProdIp}:."
+                sh "scp -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ./flask/docker-compose.yml ec2-user@${env.publicProdIp}:."
             }
         }
 
@@ -198,9 +198,9 @@ pipeline
             steps 
             {
                 echo "cleaning"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'sudo docker container prune --force'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'sudo docker container prune --force'"
                 echo 'pull +run docker'
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'docker-compose up --no-build -d'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker-compose up --no-build -d'"
             }
         }
 
@@ -228,7 +228,7 @@ pipeline
             steps 
             {
                 echo "closing container"
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicTestIp} 'docker-compose down --no-build'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicTestIp} 'docker-compose down --no-build'"
                 echo "stopping test instance"
                 sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${env.instanceTestId}"
                 sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${env.instanceTestId}"
@@ -248,9 +248,9 @@ pipeline
             {
                 echo 'Deploying to the production server...'
                 echo "Shutting Down Old Flask..."
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'docker-compose down --no-build'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker-compose down --no-build'"
                 echo "Running Updated Flask..."
-                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/oks.pem ec2-user@${env.publicProdIp} 'docker-compose up --no-build -d'"
+                sh "ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Daniel.pem ec2-user@${env.publicProdIp} 'docker-compose up --no-build -d'"
             }
         }
     }

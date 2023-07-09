@@ -317,7 +317,17 @@ pipeline
 
         stage('Unit Test')
         {
-            sh 'python3 -m unittest discover -s /var/lib/jenkins/scripts/testScriptsFlask -p "*_test.py"'
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps
+            {
+                sh 'python3 -m unittest discover -s /var/lib/jenkins/scripts/testScriptsFlask -p "*_test.py"'
+            }
         }
 
         stage('Curl Test') 

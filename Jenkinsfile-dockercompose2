@@ -6,6 +6,7 @@ def pullFlaskAndDB(String server)
         echo "cleaning"
         sh "ssh -o StrictHostKeyChecking=no -i ${env.SSHKEYLOCATION} ec2-user@${server} 'sudo docker container prune --force'"
         echo 'pull +run docker'
+        sh "ssh -o StrictHostKeyChecking=no -i ${env.SSHKEYLOCATION} ec2-user@${server} 'docker-compose pull'"
         sh "ssh -o StrictHostKeyChecking=no -i ${env.SSHKEYLOCATION} ec2-user@${server} 'docker-compose up --no-build -d'"
     } 
     catch (Exception e) 

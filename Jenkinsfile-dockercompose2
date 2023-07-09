@@ -138,7 +138,7 @@ pipeline
         SSHKEYLOCATION = "/var/lib/jenkins/.ssh/Daniel.pem"
         DOCKERPROJECTNAME = "s0ultak3r/dockerflask"
         DOCKERDBNAME= "s0ultak3r/dockerdb"
-        ANSIBLEFOLDER= "/var/lib/jenkins/ansible-docker-jenkins"
+        ANSIBLEFOLDER= "/var/lib/jenkins/ansibleFiles"
     }
 
     triggers 
@@ -159,15 +159,6 @@ pipeline
                 }
             }
         }
-
-        stage('Install Dependencies') 
-        {
-            steps 
-            {
-                sh 'pip install -r ./flask/flask-app/requirements.txt'
-            }
-        }
-
 
         stage('Cleanup') 
         {
@@ -205,6 +196,17 @@ pipeline
             }
         }
         
+        stage('Install Dependencies') 
+        {
+            steps 
+            {
+                //Install dependencies
+                echo 'Installing dependencies...'
+                sh "ansible-playbook ${ANSIBLEFOLDER}/installLocal.yml"
+                sh 'pip install -r ./flask/flask-app/requirements.txt'
+            }
+        }
+                
         stage('Build-create docker image and push') 
         {
             when 

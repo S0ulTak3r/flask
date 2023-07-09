@@ -291,6 +291,13 @@ pipeline
         
         stage('Install Dependencies') 
         {
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
             steps 
             {
                 script 

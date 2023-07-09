@@ -447,7 +447,7 @@ pipeline
             {
                 script
                 {
-                    closeInstance(env.publicTestIp,env.SSHKEYLOCATION)
+                    closeInstance(env.instanceTestId,env.SSHKEYLOCATION)
                 }
             }
         }

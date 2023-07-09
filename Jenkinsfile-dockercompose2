@@ -77,10 +77,19 @@ def BuildAndPush(String project, String location)
     }
 }
 
-def TransferFile(String server, String fileLocation)
+def TransferFile(String server, String fileLocation, String sshkey)
 {
-    echo "transferring docker-compose to ${server}"
-    sh "scp -o StrictHostKeyChecking=no -i ${env.SSHKEYLOCATION} ${fileLocation} ec2-user@${server}:."
+    try
+    {
+        echo "transferring docker-compose to ${server}"
+        sh "scp -o StrictHostKeyChecking=no -i ${sshkey} ${fileLocation} ec2-user@${server}:."
+    }
+    catch (Exception e)
+    {
+        echo "Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to transfer file to ${server}"
+    }
 }
 
 def clone(String gitUrl)
@@ -109,7 +118,7 @@ def installDependenciesSystemLvl()
         sh "ansible-playbook ${ANSIBLEFOLDER}/installLocal.yml"
         sh "pip install -r ${REQLOCATION}"
     }
-    except (Exception e)
+    catch (Exception e)
     {
         echo "Error: ${e.getMessage()}"
         currentBuild.result = 'FAILURE'

@@ -192,14 +192,14 @@ def installDockerRemote(String ansible_folder , String playbook)
 }
 
 
-def closeInstance(String instance,String sshkey)
+def closeInstance(String instanceid,String instanceip,String sshkey)
 {
     try
     {
         echo "closing container"
-        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instance} 'docker-compose down --no-build'"
-        sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${instance}"
-        sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${instance}"
+        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instanceip} 'docker-compose down --no-build'"
+        sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${instanceid}"
+        sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${instanceid}"
     }
     catch (Exception e)
     {
@@ -447,7 +447,7 @@ pipeline
             {
                 script
                 {
-                    closeInstance(env.instanceTestId,env.SSHKEYLOCATION)
+                    closeInstance(env.instanceTestId,env.publicTestIp,env.SSHKEYLOCATION)
                 }
             }
         }

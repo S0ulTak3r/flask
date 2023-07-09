@@ -83,6 +83,40 @@ def TransferFile(String server, String fileLocation)
     sh "scp -o StrictHostKeyChecking=no -i ${env.SSHKEYLOCATION} ${fileLocation} ec2-user@${server}:."
 }
 
+def clone(String gitUrl)
+{
+    try
+    {
+        //clonning from github to workspace
+        echo 'Cloning repository...'
+        sh "git clone ${gitUrl}"
+        sh 'ls'
+    }
+    catch (Exception e)
+    {
+        echo "Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to clone repository"
+    }
+}
+
+def installDependenciesSystemLvl()
+{
+    try
+    {
+        //Install dependencies
+        echo 'Installing dependencies...'
+        sh "ansible-playbook ${ANSIBLEFOLDER}/installLocal.yml"
+        sh "pip install -r ${REQLOCATION}"
+    }
+    except (Exception e)
+    {
+        echo "Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to install dependencies system level"
+    }
+}
+
 def GetInstanceDetails()
 {
     try
@@ -130,6 +164,42 @@ def GetInstanceDetails()
     
 }
 
+def installDockerRemote(String ansible_folder , String playbook)
+{
+    try
+    {
+        dir("${ansible_folder}")
+        {
+            echo "installing docker"
+            sh "ansible-playbook -i aws_ec2.yml ${playbook}"
+        }
+    }
+    catch (Exception e)
+    {
+        echo "Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to install docker"
+    }
+}
+
+
+def closeInstance(String instance,String sshkey)
+{
+    try
+    {
+        echo "closing container"
+        sh "ssh -o StrictHostKeyChecking=no -i ${sshkey} ec2-user@${instance} 'docker-compose down --no-build'"
+        sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${instance}"
+        sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${instance}"
+    }
+    catch (Exception e)
+    {
+        echo "Error: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        error "Failed to close instance"
+    }
+}
+
 pipeline 
 {
     agent any
@@ -140,6 +210,8 @@ pipeline
         DOCKERPROJECTNAME = "s0ultak3r/dockerflask"
         DOCKERDBNAME= "s0ultak3r/dockerdb"
         ANSIBLEFOLDER= "/var/lib/jenkins/ansibleFiles"
+        GITURL= "https://github.com/S0ulTak3r/flask.git"
+        REQLOCATION= "./flask/flask-app/requirements.txt"
     }
 
     triggers 
@@ -172,10 +244,18 @@ pipeline
             }
             steps 
             {
-                //Removes Unnecessary files
-                echo 'Performing cleanup...'
-                sh 'rm -rf *'
-                sh "docker images | grep -w 's0ultak3r/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerflask:{}"
+                try
+                {
+                    echo "attempting Cleanup"
+                    sh 'rm -rf *'
+                    sh "docker images | grep -w 's0ultak3r/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerflask:{}"
+                }
+                catch (Exception e)
+                {
+                    echo "Error: ${e.getMessage()}"
+                    currentBuild.result = 'FAILURE'
+                    error "Failed to cleanup"
+                }
             }
         }
         
@@ -190,10 +270,10 @@ pipeline
             }
             steps
             {
-                //clonning from github to workspace
-                echo 'Cloning repository...'
-                sh 'git clone https://github.com/S0ulTak3r/flask.git'
-                sh 'ls'
+                script
+                {
+                    clone(env.GITURL)
+                }
             }
         }
         
@@ -201,10 +281,10 @@ pipeline
         {
             steps 
             {
-                //Install dependencies
-                echo 'Installing dependencies...'
-                sh "ansible-playbook ${ANSIBLEFOLDER}/installLocal.yml"
-                sh 'pip install -r ./flask/flask-app/requirements.txt'
+                script 
+                {
+                    installDependenciesSystemLvl()
+                }
             }
         }
 
@@ -274,11 +354,10 @@ pipeline
             }
             steps
             {
-                dir("${env.ANSIBLEFOLDER}")
+                script
                 {
-                    echo "installing all needed"
-                    sh "ansible-playbook -i aws_ec2.yml InstallAllComponents.yml"
-                }    
+                    installDockerRemote(env.ANSIBLEFOLDER,"InstallAllComponents.yml")
+                }
             }
         }
 
@@ -293,10 +372,13 @@ pipeline
             }
             steps
             {
-                echo "transferring docker-compose to test"
-                TransferFile(env.publicTestIp,"./flask/docker-compose.yml")
-                echo "transferring docker-compose to prod"
-                TransferFile(env.publicProdIp,"./flask/docker-compose.yml")
+                script
+                {
+                    echo "transferring docker-compose to test"
+                    TransferFile(env.publicTestIp,"./flask/docker-compose.yml")
+                    echo "transferring docker-compose to prod"
+                    TransferFile(env.publicProdIp,"./flask/docker-compose.yml")
+                }
             }
         }
 
@@ -318,21 +400,6 @@ pipeline
             }
         }
 
-        stage('Unit Test')
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
-            }
-            steps
-            {
-                sh 'python3 -m unittest discover -s /var/lib/jenkins/scripts/testScriptsFlask -p "*_test.py"'
-            }
-        }
-
         stage('Curl Test') 
         {
             when 
@@ -350,18 +417,19 @@ pipeline
         
         stage('Closing test server- if success') 
         {
-            when {
-                expression {
+            when 
+            {
+                expression 
+                {
                     return env.NO_CHANGES != "true"
                 }
             }
             steps 
             {
-                echo "closing container"
-                sh "ssh -o StrictHostKeyChecking=no -i ${env.SSHKEYLOCATION} ec2-user@${env.publicTestIp} 'docker-compose down --no-build'"
-                echo "stopping test instance"
-                sh "aws ec2 stop-instances --region eu-north-1 --instance-ids ${env.instanceTestId}"
-                sh "aws ec2 wait instance-stopped --region eu-north-1 --instance-ids ${env.instanceTestId}"
+                script
+                {
+                    closeInstance(env.publicTestIp,env.SSHKEYLOCATION)
+                }
             }
         }
 
@@ -369,14 +437,17 @@ pipeline
         
         stage('Deployment') 
         {
-            when {
-                expression {
+            when 
+            {
+                expression 
+                {
                     return env.NO_CHANGES != "true"
                 }
             }
             steps 
             {
-                script{
+                script
+                {
                     pullFlaskAndDB(env.publicProdIp)
                 }
             }

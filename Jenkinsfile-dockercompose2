@@ -387,9 +387,9 @@ pipeline
                 script
                 {
                     echo "transferring docker-compose to test"
-                    TransferFile(env.publicTestIp,"./flask/docker-compose.yml")
+                    TransferFile(env.publicTestIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
                     echo "transferring docker-compose to prod"
-                    TransferFile(env.publicProdIp,"./flask/docker-compose.yml")
+                    TransferFile(env.publicProdIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
                 }
             }
         }

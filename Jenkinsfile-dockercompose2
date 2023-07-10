@@ -1,4 +1,4 @@
-def pullFlaskAndDB(String server) 
+def pullFlaskAndDB(String server)
 {
     try 
     {
@@ -22,7 +22,7 @@ def checkChanges()
     try
     {
         def changeSets = currentBuild.changeSets
-        if (changeSets.size() == 0) 
+        if (changeSets.size() == 0)
         {
             println('No commits have been made. Proceeding with pipeline execution...')
             env.NO_CHANGES = "false"
@@ -259,6 +259,7 @@ pipeline
                         echo "attempting Cleanup"
                         sh 'rm -rf *'
                         sh "docker images | grep -w 's0ultak3r/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerflask:{}"
+                        sh "docker images | grep -w 's0ultak3r/dockerdb' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerdb:{}"
                     }
                     catch (Exception e)
                     {

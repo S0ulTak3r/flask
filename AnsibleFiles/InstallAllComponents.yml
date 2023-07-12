@@ -1,0 +1,41 @@
+- name: Install Flask and Run Flask project on Flask instances
+  hosts: 
+    - Environment_Production
+    - Environment_Test
+  become: true
+  vars:
+    flask_port: 5000  # Define the Flask project port here
+  tasks:
+    - name: Update the EC2
+      command: dnf upgrade -y
+      become: true
+
+    - name: Install Python pip
+      command: dnf install -y python3-pip
+      become: true
+
+    - name: Install Flask
+      pip:
+        name: flask
+        state: present
+      become: true
+    
+    - name: Install Docker
+      command: dnf install -y docker
+      become: true
+
+    - name: Install Docker-Compose
+      command: pip install --ignore-installed requests docker-compose
+      become: true
+
+    - name: Start Docker Service
+      command: systemctl start docker
+      become: true
+    
+    - name: Enable Docker Service
+      command: systemctl enable docker
+      become: true
+
+    - name: Add EC2-user to docker Group
+      command: usermod -aG docker ec2-user
+      become: true

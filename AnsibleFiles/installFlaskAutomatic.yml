@@ -1,0 +1,58 @@
+- name: Install Flask and Run Flask project
+  hosts: all
+  become: true
+  vars:
+    flask_port: 5000  # Define the Flask project port here
+  tasks:
+    - name: Install Python pip
+      command: dnf install -y python3-pip
+      become: true
+
+    - name: Install Flask
+      pip:
+        name: flask
+        state: present
+      become: true
+
+    - name: Install Git
+      dnf:
+        name: git
+        state: present
+      become: true
+
+    - name: Clone Flask project
+      git:
+        repo: https://github.com/S0ulTak3r/flask.git
+        dest: /home/ec2-user/NewServer
+      become: true
+
+    - name: Install project requirements
+      pip:
+        requirements: /home/ec2-user/NewServer/PythonFlask/docker-curriculum/flask-app/requirements.txt
+      become: true
+
+    - name: Install service for autoRun
+      template:
+        src: flaskserver.service
+        dest: /etc/systemd/system
+
+    - name: Enable Flask service
+      systemd:
+        name: flaskserver
+        enabled: yes
+      become: true
+
+    - name: Start Flask service
+      systemd:
+        name: flaskserver
+        state: started
+        daemon_reload: yes
+      become: true
+    
+    - name: Restart Flask service
+      systemd:
+        name: flaskserver
+        state: restarted
+        daemon_reload: yes
+      become: true
+

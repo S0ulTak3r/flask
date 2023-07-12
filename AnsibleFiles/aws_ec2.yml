@@ -1,0 +1,14 @@
+plugin: amazon.aws.aws_ec2
+
+regions:
+  - eu-north-1
+
+keyed_groups:
+  - prefix: Environment
+    key: tags.Environment
+    separator: '_'
+
+hostnames:
+  - ip-address
+
+

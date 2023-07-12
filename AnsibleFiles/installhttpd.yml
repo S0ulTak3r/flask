@@ -1,0 +1,28 @@
+- name: Install Apache HTTP Server, GIT, and SSH
+  hosts: aws_hostsHTTPD
+  become: true
+  tasks:
+    - name: Update package cache
+      package:
+        name: '*'
+        state: latest
+
+    - name: Install packages
+      package:
+        name:
+          - httpd
+          - git
+          - openssh-server
+        state: present
+
+    - name: Stop Apache service
+      service:
+        name: httpd
+        state: stopped
+        enabled: true
+
+    - name: Start Apache service
+      service:
+        name: httpd
+        state: started
+        enabled: true

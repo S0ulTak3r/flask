@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: Install necessary packages
+    become: yes
+    apt:
+      name: "{{ packages }}"
+      update_cache: yes
+    vars:
+      packages:
+      - pkg-config
+      - libmysqlclient-dev

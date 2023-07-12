@@ -1,0 +1,26 @@
+- name: Install Flask and Run Flask project
+  hosts: aws_hostsFlask
+  become: true
+  vars:
+    flask_port: 5000  # Define the Flask project port here
+  tasks:
+    - name: Install Python pip
+      command: dnf install -y python3-pip
+      become: true
+
+    - name: Install Flask
+      pip:
+        name: flask
+        state: present
+      become: true
+
+    - name: Install project requirements
+      pip:
+        requirements: /flask/PythonFlask/docker-curriculum/flask-app/requirements.txt
+      become: true
+
+    - name: Run Flask project
+      command: nohup python3 /flask/PythonFlask/docker-curriculum/flask-app/app.py --port={{ flask_port }}
+      become: true
+      async: 0
+      poll: 0

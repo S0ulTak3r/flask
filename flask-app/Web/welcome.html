@@ -23,9 +23,9 @@
     <div class="container">
         <h4>Welcome to My Flask App</h4>
         <p>Click the button below to view some awesome GIFs!</p>
-        <a href="/gifs">
-            <button>View GIFs</button>
-        </a>
+        <form method="POST" action="/welcome">
+          <button type="submit">View GIFs</button>
+        </form>
     </div>
 </body>
 </html>

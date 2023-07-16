@@ -10,6 +10,7 @@ pipeline
         ANSIBLEFOLDER = "/var/lib/jenkins/AnsibleFiles/Daniel-B-AutoAnsible"
         GITURL = "git@github.com:S0ulTak3r/flask.git"
         REQLOCATION = "./flask/flask-app/requirements.txt"
+        GIT_SSH_COMMAND = "ssh -o StrictHostKeyChecking=no"
     }
 
     triggers {

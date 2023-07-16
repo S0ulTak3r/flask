@@ -3,23 +3,23 @@ body {
     color: white;
     font-family: Arial, sans-serif;
     overflow: hidden;
-    height: 100vh; /* Set height to full viewport height */
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .container {
     max-width: 500px;
     margin: auto;
     padding: 20px;
-    position: absolute; /* Set position to absolute */
-    top: 50%; /* Position at middle of screen */
-    transform: translateY(-50%); /* Center vertically */
-    width: 100%; /* Set width to full width */
+    width: 100%;
 }
 
 .container > * {
     text-align: center;
     opacity: 0;
-    animation: fade-in 2s ease-in forwards, scroll-up 2s ease-in 2s forwards;
+    animation: fade-in 2s ease-in forwards;
     display: none;
 }
 
@@ -56,14 +56,5 @@ body {
     }
     100% {
         opacity: 1;
-    }
-}
-
-@keyframes scroll-up {
-    0% {
-        transform: translateY(100%); /* Start offscreen at the bottom */
-    }
-    100% {
-        transform: translateY(-100%); /* Scroll up to top */
     }
 }

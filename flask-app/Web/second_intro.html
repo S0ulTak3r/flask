@@ -36,36 +36,6 @@
         </div>
     </div>
 
-    <script type="text/javascript">
-        const nameElem = document.querySelector('.name');
-        const questionElem = document.querySelector('.question');
-        const optionsElem = document.querySelector('.options');
-        const bioYesElem = document.querySelector('.bio-yes');
-        const bioNoElem = document.querySelector('.bio-no');
-        const introContainerElem = document.querySelector('.intro-container');
-
-        nameElem.addEventListener('animationend', () => {
-            questionElem.style.display = 'block'; // Show question after name is animated
-        });
-
-        function showBio(isYes) {
-            optionsElem.style.display = 'none'; // Hide options
-            if (isYes) {
-                bioYesElem.style.display = 'block'; // Show yes bio
-                bioNoElem.style.display = 'none';
-            } else {
-                bioYesElem.style.display = 'none';
-                bioNoElem.style.display = 'block'; // Show no bio
-            }
-            setTimeout(() => {
-                introContainerElem.style.display = 'block'; // Show intro text after 10 seconds
-            }, 10000);
-        }
-
-        // Redirect to welcome page after 30 seconds
-        setTimeout(() => {
-            window.location.href = "/welcome";
-        }, 30000);
-    </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='second_intro.js') }}"></script>
 </body>
 </html>

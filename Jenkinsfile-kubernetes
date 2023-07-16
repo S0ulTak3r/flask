@@ -101,6 +101,8 @@ pipeline
             }
         }
 
+
+
         stage('Deployment') {
             when {
                 expression {
@@ -113,6 +115,19 @@ pipeline
                 echo "Deploying application"
                 sh "kubectl apply -f ./flask/KubernetesFiles/deployment.yml"
                 sh "kubectl apply -f ./flask/KubernetesFiles/service.yml"
+            }
+        }
+
+        stage('Rollout Restart') {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps {
+                echo 'Performing rollout restart...'
+                sh "kubectl rollout restart deployment/flask-deployment"
+                sh "kubectl rollout restart deployment/mysql-deployment"
             }
         }
     }

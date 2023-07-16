@@ -41,7 +41,7 @@ def welcome():
 
 @app.route("/gifs")
 def display_gifs():
-    global db  # ensure you're modifying the global db
+    global db  # ensure you're modifying the glssobal db
     for _ in range(3):  # Try 3 times
         try:
             if db.is_connected() == False: # check if connection is still open

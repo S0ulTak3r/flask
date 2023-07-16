@@ -40,17 +40,21 @@ def welcome():
 
 @app.route("/gifs")
 def display_gifs():
-    try:
-        cursor = db.cursor()
-        cursor.execute("SELECT url FROM images;")
-        images = [row[0] for row in cursor.fetchall()]
-        url = random.choice(images)
-        return render_template("gifs.html", url=url)
-    except mysql.connector.Error as err:
-        # Handle the error and attempt to reconnect
-        print("Error accessing the database. Reconnecting...")
-        db = establish_db_connection()
-        return "Error accessing the database. Please try again later."
+    for _ in range(3):  # Try 3 times
+        try:
+            cursor = db.cursor()
+            cursor.execute("SELECT url FROM images;")
+            images = [row[0] for row in cursor.fetchall()]
+            url = random.choice(images)
+            return render_template("gifs.html", url=url)
+        except mysql.connector.Error as err:
+            # Handle the error and attempt to reconnect
+            print("Error accessing the database. Reconnecting...")
+            global db  # ensure you're modifying the global db
+            db = establish_db_connection()
+            continue
+    return "Error accessing the database. Please try again later."
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

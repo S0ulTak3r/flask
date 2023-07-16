@@ -31,9 +31,12 @@ pipeline
                     return env.NO_CHANGES != "true"
                 }
             }
-            steps {
-                script {
-                    try {
+            steps 
+            {
+                script 
+                {
+                    try 
+                    {
                         echo "attempting Cleanup"
                         sh 'rm -rf *'
                         sh "docker images | grep -w 's0ultak3r/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerflask:{}"

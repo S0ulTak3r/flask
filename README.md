@@ -1,9 +1,10 @@
-<<<<<<< HEAD
-# flask
+# Daniel Flask Project
 
-=======
-
+before you proceed make sure to have Jenkins & Kubernetes environment available at your disposal.
 
 
-# flask
->>>>>>> 0da74b0b6db3fe6e49eb4c8a2a37f9cc4b204d6f
+after that the connection should be pretty easy,
+there are a lot of Jenkins files for each type of deployment.
+
+make sure to change the environmental variables aswell to suit your needs.
+

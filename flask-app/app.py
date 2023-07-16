@@ -4,7 +4,8 @@ import os
 import random
 import time
 
-app = Flask(__name__, template_folder='Web')
+
+app = Flask(__name__, template_folder='Web', static_folder='css')
 
 
 def establish_db_connection():

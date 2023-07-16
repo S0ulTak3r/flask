@@ -1,68 +1,44 @@
 @Library('pipelinefunctions')
 
-
-pipeline 
-{
+pipeline {
     agent any
     
-    environment 
-    {
+    environment {
         SSHKEYLOCATION = "/var/lib/jenkins/.ssh/Daniel.pem"
         DOCKERPROJECTNAME = "s0ultak3r/dockerflask"
-        DOCKERDBNAME= "s0ultak3r/dockerdb"
-        ANSIBLEFOLDER= "/var/lib/jenkins/AnsibleFiles/Daniel-B-AutoAnsible"
-        GITURL= "https://github.com/S0ulTak3r/flask.git"
-        REQLOCATION= "./flask/flask-app/requirements.txt"
+        DOCKERDBNAME = "s0ultak3r/dockerdb"
+        ANSIBLEFOLDER = "/var/lib/jenkins/AnsibleFiles/Daniel-B-AutoAnsible"
+        GITURL = "https://github.com/S0ulTak3r/flask.git"
+        REQLOCATION = "./flask/flask-app/requirements.txt"
     }
 
-    triggers 
-    {
+    triggers {
         pollSCM('*/1 * * * *')
     }
     
-    stages 
-    {
-        stage('Load pipelineFunctions') {
+    stages {
+        stage('Changes Check') {
             steps {
                 script {
-                    pipelineFunctions = load '/var/lib/jenkins/pipelineFunctions/pipelineFunctions.groovy'
-                }
-            }
-        }
-
-        stage('Changes Check') 
-        {
-            steps 
-            {
-                script 
-                {
                     pipelineFunctions.checkChanges()
                 }
             }
         }
 
-        stage('Cleanup') 
-        {
-            when 
-            {
-                expression 
-                {
+        stage('Cleanup') {
+            when {
+                expression {
                     return env.NO_CHANGES != "true"
                 }
             }
-            steps 
-            {
-                script
-                {
-                    try
-                    {
+            steps {
+                script {
+                    try {
                         echo "attempting Cleanup"
                         sh 'rm -rf *'
                         sh "docker images | grep -w 's0ultak3r/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerflask:{}"
                         sh "docker images | grep -w 's0ultak3r/dockerdb' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerdb:{}"
-                    }
-                    catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         echo "Error: ${e.getMessage()}"
                         currentBuild.result = 'FAILURE'
                         error "Failed to cleanup"
@@ -71,90 +47,68 @@ pipeline
             }
         }
         
-        stage('Clone') 
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
-            }
-            steps
-            {
-                script
-                {
-                    pipelineFunctions.clonegit(env.GITURL)
-                }
-            }
-        }
-
-        stage('Install Dependencies') 
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
-            }
-            steps 
-            {
-                script 
-                {
-                    pipelineFunctions.installDependenciesSystemLvl()
-                }
-            }
-        }
-
-        stage('Build-create dockerFlask image and push') 
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
-            }
-            steps 
-            {
-                script
-                {
-                    pipelineFunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
-                }
-            }
-        }
-        
-        stage('Build-create dockerDB image and push') 
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
-            }
-            steps 
-            {
-                script
-                {
-                    pipelineFunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
-                }
-            }
-        }
-        
-        stage('Deployment') 
-        {
+        stage('Clone') {
             when {
                 expression {
                     return env.NO_CHANGES != "true"
                 }
             }
-            steps 
-            {
-                echo 'Making Sure im in right context...'
+            steps {
+                script {
+                    pipelineFunctions.clonegit(env.GITURL)
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps {
+                script {
+                    pipelineFunctions.installDependenciesSystemLvl()
+                }
+            }
+        }
+
+        stage('Build-create dockerFlask image and push') {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps {
+                script {
+                    pipelineFunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
+                }
+            }
+        }
+        
+        stage('Build-create dockerDB image and push') {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps {
+                script {
+                    pipelineFunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
+                }
+            }
+        }
+        
+        stage('Deployment') {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps {
+                echo 'Making Sure I am in the right context...'
                 sh "kubectl config use-context docker-desktop"
-                echo "deploying application"
+                echo "Deploying application"
                 sh "kubectl apply -f ./flask/KubernetesFiles/deployment.yml"
                 sh "kubectl apply -f ./flask/KubernetesFiles/service.yml"
             }

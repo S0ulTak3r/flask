@@ -5,75 +5,90 @@ body {
     overflow: hidden;
     margin: 0;
     padding: 0;
-}
-
-.background {
+  }
+  
+  .background {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     display: flex;
-}
-
-@keyframes white-part-animation {
+  }
+  
+  @keyframes white-part-animation {
     0% {
-        flex: 1;
+      flex: 1;
+      background: white;
+    }
+    50% {
+      flex: 1;
+      background: white;
     }
     100% {
-        flex: 0.25;
+      flex: 0.25;
+      background: black;
     }
-}
-
-@keyframes black-part-animation {
+  }
+  
+  @keyframes black-part-animation {
     0% {
-        flex: 1;
+      flex: 0;
+      background: black;
+    }
+    50% {
+      flex: 0;
+      background: black;
     }
     100% {
-        flex: 0.75;
+      flex: 0.75;
+      background: white;
     }
-}
-
-.white-part {
-    background: white;
-    animation: white-part-animation 2s ease-in forwards;
-}
-
-.black-part {
-    background: black;
-    animation: black-part-animation 2s ease-in forwards;
-}
-
-.container {
+  }
+  
+  .white-part {
+    flex: 1;
+    animation: white-part-animation 4s linear forwards;
+    animation-delay: 2s;
+  }
+  
+  .black-part {
+    flex: 0;
+    animation: black-part-animation 4s linear forwards;
+    animation-delay: 2s;
+  }
+  
+  .container {
     max-width: 500px;
     margin: 100px auto;
     padding: 10px;
     text-align: center;
     opacity: 0;
-    transition: opacity 1s ease-in 2s;
-}
-
-@keyframes slide-in-fade {
+  }
+  
+  @keyframes slide-in-fade {
     0% {
-        opacity: 0;
-        transform: translateX(-100%);
+      opacity: 0;
+      transform: translateX(-100%);
     }
     100% {
-        opacity: 1;
-        transform: translateX(0);
+      opacity: 1;
+      transform: translateX(0);
     }
-}
-
-.welcome, .site-title {
+  }
+  
+  .welcome,
+  .site-title {
     opacity: 0;
     transform: translateX(-100%);
     animation: slide-in-fade 1s 4s ease-in forwards;
-}
-
-.welcome {
+  }
+  
+  .welcome {
     font-size: 50px;
-}
-
-.site-title {
+  }
+  
+  .site-title {
     font-size: 24px;
-}
+  }
+  

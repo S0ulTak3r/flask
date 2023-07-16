@@ -3,43 +3,31 @@
 <head>
     <title>App Introduction</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='second_intro.css') }}">
-
 </head>
 <body>
     <div class="background"></div>
     <div class="container">
-        <div class="text-container">
-            <h1 class="name">Hi, my name is Daniel Boguslavsky.</h1>
-            <p class="question">If you don't know who I am and want to hear a little about me, please press Y. If not, press N.</p>
-        </div>
+        <h1 class="name">Hi, my name is Daniel Boguslavsky.</h1>
+        <p class="question">If you don't know who I am and want to hear a little about me, please press Y. If not, press N.</p>
         <div class="options">
             <button class="btn-yes" onclick="showBio(true)">Y</button>
             <button class="btn-no" onclick="showBio(false)">N</button>
         </div>
-        <div class="bio-container">
-            <div id="bio-yes">
-                <p class="bio-text">
-                    I'm surprised you decided to waste your time, but heck,
-                    I am a discharged soldier from the IDF's ICT and Cyber Directorate with a passion for 
-                    advanced technologies such as programming and AI, including ChatGPT. I believe 
-                    in the importance of constant learning and exhibit a curious and persistent 
-                    character. I have extensive experience leading a team of network administrators in 
-                    a military framework. Currently, I am completing a DevOps course. My goal is to 
-                    leverage my broad technological experience in a new, fascinating employment 
-                    challenge in the professional field.
-                </p>
-            </div>
-            <div id="bio-no">
-                <p class="bio-text">
-                    Exactly, why would we waste time on this.
-                </p>
-            </div>
-        </div>
+        <p class="bio-yes">
+            I'm surprised you decided to waste your time, but heck,
+            I am a discharged soldier from the IDF's ICT and Cyber Directorate with a passion for 
+            advanced technologies such as programming and AI, including ChatGPT. I believe 
+            in the importance of constant learning and exhibit a curious and persistent 
+            character. I have extensive experience leading a team of network administrators in 
+            a military framework. Currently, I am completing a DevOps course. My goal is to 
+            leverage my broad technological experience in a new, fascinating employment 
+            challenge in the professional field.
+        </p>
+        <p class="bio-no">Exactly, why would we waste time on this.</p>
         <div class="intro-container">
             <p class="intro-text">
                 Well, as you probably know (or not), I'm a DevOps student, and something that has always bugged me is the fact that people often don't value the work of a DevOps Specialist enough. They see the beautiful front-end that was developed, but they don't understand this...
             </p>
-            <p class="pause"></p>
             <p class="monster-text">
                 That behind the beautiful mask that I call the FRONT-END, lies a scary monster of all the infrastructure behind the mask.
             </p>
@@ -50,18 +38,42 @@
     </div>
 
     <script type="text/javascript">
-        // Redirect after intro animation finishes
-        setTimeout(function() {
-            window.location.href = "/welcome";
-        }, 10000); // 10000 milliseconds = 10 seconds
+        const nameElem = document.querySelector('.name');
+        const questionElem = document.querySelector('.question');
+        const optionsElem = document.querySelector('.options');
+        const bioYesElem = document.querySelector('.bio-yes');
+        const bioNoElem = document.querySelector('.bio-no');
+        const introContainerElem = document.querySelector('.intro-container');
+
+        nameElem.addEventListener('animationend', () => {
+            scrollToElement(questionElem);
+        });
 
         function showBio(isYes) {
             if (isYes) {
-                document.getElementById("bio-yes").style.display = "block";
-                document.getElementById("bio-no").style.display = "none";
+                bioYesElem.style.display = 'block';
+                bioNoElem.style.display = 'none';
             } else {
-                document.getElementById("bio-yes").style.display = "none";
-                document.getElementById("bio-no").style.display = "block";
+                bioYesElem.style.display = 'none';
+                bioNoElem.style.display = 'block';
+            }
+            optionsElem.style.display = 'none';
+            setTimeout(() => {
+                scrollToElement(isYes ? bioYesElem : bioNoElem);
+            }, 2000);
+        }
+
+        function scrollToElement(elem) {
+            elem.scrollIntoView({ behavior: 'smooth' });
+            if (elem === bioYesElem || elem === bioNoElem) {
+                setTimeout(() => {
+                    scrollToElement(introContainerElem);
+                }, 10000);
+            }
+            if (elem === introContainerElem) {
+                setTimeout(() => {
+                    window.location.href = "/welcome";
+                }, 20000);
             }
         }
     </script>

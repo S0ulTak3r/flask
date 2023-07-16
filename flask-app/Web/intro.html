@@ -3,20 +3,23 @@
 <head>
     <title>App Introduction</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='intro.css') }}">
-
 </head>
 <body>
-    <div class="background"></div>
-    <div class="container">
-        <h1 class="welcome">Welcome</h1>
-        <h2 class="site-title">To Daniel's Portfolio Site</h2>
+    <div class="background">
+        <div class="white-part"></div>
+        <div class="black-part">
+            <div class="container">
+                <h1 class="welcome">Welcome</h1>
+                <h2 class="site-title">To Daniel's Portfolio Site</h2>
+            </div>
+        </div>
     </div>
 
     <script type="text/javascript">
-        // Redirect after 10 seconds
+        // Redirect after the entire sequence of animations (approx. 6 seconds)
         setTimeout(function() {
             window.location.href = "/second_intro";
-        }, 10000); // 10000 milliseconds = 10 seconds
+        }, 9000); // 9000 milliseconds = 9 seconds
     </script>
 </body>
 </html>

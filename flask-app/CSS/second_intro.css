@@ -2,45 +2,31 @@ body {
     background: black;
     color: white;
     font-family: Arial, sans-serif;
-}
-
-.background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: black;
-    animation: fade-in 1s ease-in;
+    overflow: hidden;
 }
 
 .container {
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.container > * {
     text-align: center;
+    animation: fade-in 2s ease-in forwards, scroll-up 2s ease-in 2s forwards;
+    opacity: 0;
+    display: none;
 }
 
-.text-container {
-    animation: fade-in 2s ease-in 1s forwards;
-}
-
-.name {
-    font-size: 40px;
-    animation: fade-in 2s ease-in;
-}
-
-.question {
-    font-size: 24px;
-    margin-bottom: 20px;
-    animation: slide-in 2s ease-in 1s forwards;
+.container > *:first-child {
+    display: block;
 }
 
 .options {
     display: flex;
     justify-content: center;
     gap: 20px;
-    margin-bottom: 20px;
+    margin-top: 20px;
 }
 
 .btn-yes,
@@ -59,87 +45,20 @@ body {
     background-color: #555;
 }
 
-.bio-container {
-    display: none;
-}
-
-.bio-text {
-    font-size: 18px;
-    line-height: 1.5;
-    text-align: justify;
-    margin-bottom: 20px;
-}
-
-.intro-container {
-    opacity: 0;
-    animation: roll-credits 10s ease-in forwards;
-    animation-delay: 4s;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-.intro-text {
-    font-size: 20px;
-    margin-bottom: 20px;
-}
-
-.pause {
-    animation: pause 1s linear 4s forwards;
-}
-
-.monster-text {
-    font-size: 24px;
-    margin-bottom: 20px;
-    animation: slide-in 2s ease-in 4s forwards;
-}
-
-.portfolio-text {
-    font-size: 20px;
-    animation: slide-in 2s ease-in 6s forwards;
-}
-
 @keyframes fade-in {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slide-in {
-    from {
-        transform: translateX(100%);
-    }
-    to {
-        transform: translateX(0);
-    }
-}
-
-@keyframes roll-credits {
     0% {
         opacity: 0;
-        transform: translateY(100%);
     }
-    10% {
+    100% {
         opacity: 1;
-        transform: translateY(0);
     }
-    90% {
-        opacity: 1;
+}
+
+@keyframes scroll-up {
+    0% {
         transform: translateY(0);
     }
     100% {
-        opacity: 0;
         transform: translateY(-100%);
-    }
-}
-
-@keyframes pause {
-    from {
-        width: 0;
-    }
-    to {
-        width: 100%;
     }
 }

@@ -31,7 +31,6 @@ pipeline
         stage('Load pipelineFunctions') {
             steps {
                 script {
-                    checkout scm // Make sure to checkout the repository first
                     def pipelineFunctions = loadScriptFromRepository('pipelineFunctions.groovy')
                 }
             }

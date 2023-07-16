@@ -1,4 +1,4 @@
-def pipelineFunctions = load '/var/lib/jenkins/pipelinefunctions/pipelineFunctions.groovy'
+def pipelineFunctions = load '/var/lib/jenkins/pipelineFunctions/pipelineFunctions.groovy'
 
 
 pipeline 

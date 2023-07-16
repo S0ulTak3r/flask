@@ -5,7 +5,6 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='second_intro.css') }}">
 </head>
 <body>
-    <div class="background"></div>
     <div class="container">
         <h1 class="name">Hi, my name is Daniel Boguslavsky.</h1>
         <p class="question">If you don't know who I am and want to hear a little about me, please press Y. If not, press N.</p>
@@ -46,36 +45,27 @@
         const introContainerElem = document.querySelector('.intro-container');
 
         nameElem.addEventListener('animationend', () => {
-            scrollToElement(questionElem);
+            questionElem.style.display = 'block'; // Show question after name is animated
         });
 
         function showBio(isYes) {
+            optionsElem.style.display = 'none'; // Hide options
             if (isYes) {
-                bioYesElem.style.display = 'block';
+                bioYesElem.style.display = 'block'; // Show yes bio
                 bioNoElem.style.display = 'none';
             } else {
                 bioYesElem.style.display = 'none';
-                bioNoElem.style.display = 'block';
+                bioNoElem.style.display = 'block'; // Show no bio
             }
-            optionsElem.style.display = 'none';
             setTimeout(() => {
-                scrollToElement(isYes ? bioYesElem : bioNoElem);
-            }, 2000);
+                introContainerElem.style.display = 'block'; // Show intro text after 10 seconds
+            }, 10000);
         }
 
-        function scrollToElement(elem) {
-            elem.scrollIntoView({ behavior: 'smooth' });
-            if (elem === bioYesElem || elem === bioNoElem) {
-                setTimeout(() => {
-                    scrollToElement(introContainerElem);
-                }, 10000);
-            }
-            if (elem === introContainerElem) {
-                setTimeout(() => {
-                    window.location.href = "/welcome";
-                }, 20000);
-            }
-        }
+        // Redirect to welcome page after 30 seconds
+        setTimeout(() => {
+            window.location.href = "/welcome";
+        }, 30000);
     </script>
 </body>
 </html>

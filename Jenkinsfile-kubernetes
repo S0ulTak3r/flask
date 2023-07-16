@@ -1,0 +1,156 @@
+// Load the pipelineFunctions file
+def pipelineFunctions = load 'pipelineFunctions.groovy'
+
+
+pipeline 
+{
+    agent any
+    
+    environment 
+    {
+        SSHKEYLOCATION = "/var/lib/jenkins/.ssh/Daniel.pem"
+        DOCKERPROJECTNAME = "s0ultak3r/dockerflask"
+        DOCKERDBNAME= "s0ultak3r/dockerdb"
+        ANSIBLEFOLDER= "/var/lib/jenkins/AnsibleFiles/Daniel-B-AutoAnsible"
+        GITURL= "https://github.com/S0ulTak3r/flask.git"
+        REQLOCATION= "./flask/flask-app/requirements.txt"
+    }
+
+    triggers 
+    {
+        pollSCM('*/1 * * * *')
+    }
+    
+    stages 
+    {
+        stage('Changes Check') 
+        {
+            steps 
+            {
+                script 
+                {
+                    pipelineFunctions.checkChanges()
+                }
+            }
+        }
+
+        stage('Cleanup') 
+        {
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                script
+                {
+                    try
+                    {
+                        echo "attempting Cleanup"
+                        sh 'rm -rf *'
+                        sh "docker images | grep -w 's0ultak3r/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerflask:{}"
+                        sh "docker images | grep -w 's0ultak3r/dockerdb' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerdb:{}"
+                    }
+                    catch (Exception e)
+                    {
+                        echo "Error: ${e.getMessage()}"
+                        currentBuild.result = 'FAILURE'
+                        error "Failed to cleanup"
+                    }
+                }
+            }
+        }
+        
+        stage('Clone') 
+        {
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps
+            {
+                script
+                {
+                    pipelineFunctions.clonegit(env.GITURL)
+                }
+            }
+        }
+
+        stage('Install Dependencies') 
+        {
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                script 
+                {
+                    pipelineFunctions.installDependenciesSystemLvl()
+                }
+            }
+        }
+
+        stage('Build-create dockerFlask image and push') 
+        {
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                script
+                {
+                    pipelineFunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
+                }
+            }
+        }
+        
+        stage('Build-create dockerDB image and push') 
+        {
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                script
+                {
+                    pipelineFunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
+                }
+            }
+        }
+        
+        stage('Deployment') 
+        {
+            when {
+                expression {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                echo 'Making Sure im in right context...'
+                sh "kubectl config use-context docker-desktop"
+                echo "deploying application"
+                sh "kubectl apply -f ./flask/KubernetesFiles/deployment.yml"
+                sh "kubectl apply -f ./flask/KubernetesFiles/service.yml"
+            }
+        }
+    }
+}

@@ -35,9 +35,10 @@ def second_intro():
 
 @app.route("/welcome", methods=["GET", "POST"])
 def welcome():
-    if request.method == "POST":
+    if request.method == "GET":
         return redirect(url_for("display_gifs"))
     return render_template("welcome.html")
+
 
 @app.route("/gifs")
 def display_gifs():

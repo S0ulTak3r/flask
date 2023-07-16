@@ -19,30 +19,30 @@ body {
 @keyframes white-part-animation {
     0% {
         flex: 1;
-        background: white;
+        background: black;
     }
     50% {
         flex: 1;
-        background: white;
+        background: black;
     }
     100% {
         flex: 0.25;
-        background: black;
+        background: white;
     }
 }
   
 @keyframes black-part-animation {
     0% {
         flex: 0;
-        background: black;
+        background: white;
     }
     50% {
         flex: 0;
-        background: black;
+        background: white;
     }
     100% {
         flex: 0.75;
-        background: white;
+        background: black;
     }
 }
   

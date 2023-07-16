@@ -4,7 +4,8 @@ import os
 import random
 import time
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='Web')
+
 
 def establish_db_connection():
     while True:

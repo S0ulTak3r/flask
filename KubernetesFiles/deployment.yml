@@ -15,6 +15,7 @@ spec:
       containers:
         - name: flask-container
           image: s0ultak3r/dockerflask:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
           env:
@@ -44,6 +45,7 @@ spec:
       containers:
         - name: mysql-container
           image: s0ultak3r/dockerdb:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 3306
           env:

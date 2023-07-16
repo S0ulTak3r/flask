@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 import mysql.connector
 import os
 import random
@@ -6,28 +6,50 @@ import time
 
 app = Flask(__name__)
 
-# Configure MySQL connection
-db = None
-while db is None:
-    try:
-        db = mysql.connector.connect(
-            host="db",
-            user="root",
-            password="password",
-            database="flask_db"
-        )
-    except mysql.connector.Error as err:
-        print("Failed connecting to database. Retrying...")
-        time.sleep(1)
+def establish_db_connection():
+    while True:
+        try:
+            db = mysql.connector.connect(
+                host="db",
+                user="root",
+                password="password",
+                database="flask_db"
+            )
+            return db
+        except mysql.connector.Error as err:
+            print("Failed connecting to database. Retrying...")
+            time.sleep(1)
+
+# Establish the initial database connection
+db = establish_db_connection()
 
 @app.route("/")
-def index():
-    cursor = db.cursor()
-    cursor.execute("SELECT url FROM images;")
-    images = [row[0] for row in cursor.fetchall()]
-    url = random.choice(images)
-    return render_template("index.html", url=url)
+def intro():
+    return render_template("intro.html")
 
+@app.route("/second_intro")
+def second_intro():
+    return render_template("second_intro.html")
+
+@app.route("/welcome", methods=["GET", "POST"])
+def welcome():
+    if request.method == "POST":
+        return redirect(url_for("display_gifs"))
+    return render_template("welcome.html")
+
+@app.route("/gifs")
+def display_gifs():
+    try:
+        cursor = db.cursor()
+        cursor.execute("SELECT url FROM images;")
+        images = [row[0] for row in cursor.fetchall()]
+        url = random.choice(images)
+        return render_template("gifs.html", url=url)
+    except mysql.connector.Error as err:
+        # Handle the error and attempt to reconnect
+        print("Error accessing the database. Reconnecting...")
+        db = establish_db_connection()
+        return "Error accessing the database. Please try again later."
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

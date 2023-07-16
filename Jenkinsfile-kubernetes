@@ -1,9 +1,4 @@
-// Load the pipelineFunctions file
-def loadScriptFromRepository(String scriptPath) {
-    def scriptContent = checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: env.GITURL]]]) // Checkout the repository
-    def scriptFilePath = "${scriptContent}/${scriptPath}"
-    load scriptFilePath
-}
+def pipelineFunctions = load '/var/lib/jenkins/pipelinefunctions/pipelineFunctions.groovy'
 
 
 pipeline 
@@ -27,14 +22,6 @@ pipeline
     
     stages 
     {
-
-        stage('Load pipelineFunctions') {
-            steps {
-                script {
-                    def pipelineFunctions = loadScriptFromRepository('pipelineFunctions.groovy')
-                }
-            }
-        }
 
         stage('Changes Check') 
         {

@@ -17,7 +17,20 @@ pipeline
         pollSCM('*/1 * * * *')
     }
 
-    stages {
+    stages 
+    {
+
+        stage("Open Kubectl Proxy From Windows")
+        {
+            steps
+            {
+                script
+                {
+                    bat "ssh -o StrictHostKeyChecking=no creed@192.168.56.1 'kubectl proxy --address='0.0.0.0' --port='8080' --accept-hosts='.*' &"
+                }
+            }
+        }
+
         stage('Changes Check') {
             steps {
                 script {
@@ -42,6 +55,7 @@ pipeline
                         sh 'rm -rf *'
                         sh "docker images | grep -w 's0ultak3r/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerflask:{}"
                         sh "docker images | grep -w 's0ultak3r/dockerdb' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerdb:{}"
+                        sh "docker image prune -f"
                     } catch (Exception e) {
                         echo "Error: ${e.getMessage()}"
                         currentBuild.result = 'FAILURE'
@@ -134,8 +148,18 @@ pipeline
                 sh "kubectl rollout restart deployment/mysql-deployment"
             }
         }
-    }
 
+        stage('Close Kubectl Proxy On Windows')
+        {
+            steps
+            {
+                script
+                {
+                    sh "ssh -o StrictHostKeyChecking=no creed@192.168.56.1 'taskkill /F /IM kubectl.exe'"
+                }
+            }
+        }
+    }
 }
 
 

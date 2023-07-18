@@ -7,7 +7,6 @@ import time
 
 app = Flask(__name__, template_folder='Web', static_folder='CSS')
 
-
 def establish_db_connection():
     while True:
         try:

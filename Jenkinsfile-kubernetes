@@ -24,8 +24,7 @@ pipeline
             steps {
                 script {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "echo 'kubectl proxy --address=0.0.0.0 --port=8080 --accept-hosts=.*' > kubectl_proxy.ps1"
-                        ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "powershell -ExecutionPolicy Bypass -File kubectl_proxy.ps1"
+                        ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "kubectl proxy --address=0.0.0.0 --port=8080 --accept-hosts=.* &"
                     '''
                 }
             }

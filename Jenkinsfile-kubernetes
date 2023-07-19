@@ -20,20 +20,12 @@ pipeline
     stages 
     {
 
-        stage("Open Kubectl Proxy From Windows") {
-            steps {
-                script {
-                    sh '''
-                        
-                    '''
-                }
-            }
-        }
 
-
-        stage('Changes Check') {
+        stage('Changes Check') 
+        {
             steps {
-                script {
+                script 
+                {
                     checkChanges()
                 }
             }
@@ -133,8 +125,10 @@ pipeline
                 echo "Deploying application"
                 sh '''
                     ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "kubectl proxy --address=0.0.0.0 --port=8080 --accept-hosts=.* &"
-                    sh "kubectl apply -f ./flask/KubernetesFiles/deployment.yml"
-                    sh "kubectl apply -f ./flask/KubernetesFiles/service.yml"
+                    kubectl apply -f ./flask/KubernetesFiles/deployment.yml
+                    kubectl apply -f ./flask/KubernetesFiles/service.yml
+                    ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "taskkill /F /IM kubectl_proxy.bat"
+
                 '''
             }
         }
@@ -152,16 +146,6 @@ pipeline
             }
         }
 
-        stage('Close Kubectl Proxy On Windows')
-        {
-            steps
-            {
-                script
-                {
-                    sh "ssh -o StrictHostKeyChecking=no creed@192.168.56.1 'taskkill /F /IM kubectl_proxy.bat'"
-                }
-            }
-        }
     }
 }
 

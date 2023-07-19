@@ -27,7 +27,8 @@ pipeline
                 script
                 {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "cmd /C \"start /B kubectl proxy --address=0.0.0.0 --port=8080 --accept-hosts=.* > kubectl_proxy.log 2>&1\""
+                        ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "echo 'kubectl proxy --address=0.0.0.0 --port=8080 --accept-hosts=.*' > kubectl_proxy.bat"
+                        ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "start /B kubectl_proxy.bat"
                     '''
                 }
             }
@@ -157,7 +158,7 @@ pipeline
             {
                 script
                 {
-                    sh "ssh -o StrictHostKeyChecking=no creed@192.168.56.1 'taskkill /F /IM kubectl.exe'"
+                    sh "ssh -o StrictHostKeyChecking=no creed@192.168.56.1 'taskkill /F /IM kubectl_proxy.bat'"
                 }
             }
         }

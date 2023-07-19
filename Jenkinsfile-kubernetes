@@ -21,6 +21,18 @@ pipeline
     {
 
 
+        stage('start proxy')
+        {
+            steps{
+                script{
+                    sh '''
+                        nohup ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "kubectl proxy --address=0.0.0.0 --port=8080 --accept-hosts=.*" &
+                    '''
+
+                }
+            }
+        }
+
         stage('Changes Check') 
         {
             steps {
@@ -124,10 +136,8 @@ pipeline
                 sh "kubectl config use-context docker-desktop"
                 echo "Deploying application"
                 sh '''
-                    nohup ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "kubectl proxy --address=0.0.0.0 --port=8080 --accept-hosts=.*" &
                     kubectl apply -f ./flask/KubernetesFiles/deployment.yml
                     kubectl apply -f ./flask/KubernetesFiles/service.yml
-                    ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "taskkill /F /IM kubectl.exe"
                 '''
             }
         }
@@ -144,8 +154,12 @@ pipeline
                 echo 'Performing rollout restart...'
                 sh "kubectl rollout restart deployment/flask-deployment"
                 sh "kubectl rollout restart deployment/mysql-deployment"
+                sh '''
+                    ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "taskkill /F /IM kubectl.exe"
+                '''
             }
         }
+
 
     }
 }

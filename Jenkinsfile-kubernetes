@@ -12,7 +12,6 @@ pipeline
         REQLOCATION = "./flask/flask-app/requirements.txt"
         GIT_SSH_COMMAND = "ssh -o StrictHostKeyChecking=no"
         WINDOWSIP="192.168.56.1"
-        KUBECTLTCPPORT=""
     }
 
     triggers 
@@ -170,7 +169,8 @@ pipeline
                     kubectl apply -f ./flask/KubernetesFiles/service.yml
                 '''
                 echo "pulling tcp port"
-                env.KUBECTLTCPPORT = sh(script: "kubectl get service flask-service -o=jsonpath='{.spec.ports[*].nodePort}'", returnStdout: true).trim()
+                def tcpport=sh(script: "kubectl get service flask-service -o=jsonpath='{.spec.ports[*].nodePort}'", returnStdout: true).trim()
+                env.KUBECTLTCPPORT = tcpport
             }
         }
 
@@ -207,6 +207,7 @@ pipeline
                 script
                 {
                     echo "testing test environment..."
+                    sh "sleep 10"
                     sh "curl http://${env.WINDOWSIP}:${env.KUBECTLTCPPORT}"
                 }
             }
@@ -247,7 +248,7 @@ pipeline
                 script
                 {
                     echo "deploying on google kubernetes production..."
-                    sh "kubectl config use-context gke_vernal-tracer-393305_europe-north1-a_flask-production"
+                    sh "kubectl config use-context gke_vernal-tracer-393305_europe-north1-a_cluster-1"
                     sh "kubectl apply -f ./flask/KubernetesFiles/deployment.yml"
                     sh "kubectl apply -f ./flask/KubernetesFiles/service.yml"
                 }
@@ -269,6 +270,7 @@ pipeline
                 echo 'Performing rollout restart...'
                 sh "kubectl rollout restart deployment/flask-deployment"
                 sh "kubectl rollout restart deployment/mysql-deployment"
+                sh "kubectl get all"
             }
         }
 

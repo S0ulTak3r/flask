@@ -124,7 +124,7 @@ pipeline
                 sh "kubectl config use-context docker-desktop"
                 echo "Deploying application"
                 sh '''
-                    ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "start cmd.exe /C kubectl proxy --address=0.0.0.0 --port=8080 --accept-hosts=.*" &
+                    nohup ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "kubectl proxy --address=0.0.0.0 --port=8080 --accept-hosts=.*" & disown
                     kubectl apply -f ./flask/KubernetesFiles/deployment.yml
                     kubectl apply -f ./flask/KubernetesFiles/service.yml
                     ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "taskkill /F /IM kubectl.exe"

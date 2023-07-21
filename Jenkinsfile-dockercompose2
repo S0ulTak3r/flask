@@ -100,6 +100,23 @@ pipeline
             }
         }
 
+        stage('Docker Login')
+        {
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps
+            {
+                script
+                {
+                    dockerfunctions.loginDockerHub()
+                }
+            }
+        }
         stage('Build-create docker image and push') 
         {
             when 

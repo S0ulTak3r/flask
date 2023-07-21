@@ -255,7 +255,7 @@ pipeline
                     echo "deploying on google kubernetes production..."
                     sh "kubectl config use-context gke_vernal-tracer-393305_europe-north1-a_cluster-1"
                     sh "kubectl apply -f ./flask/KubernetesFiles/deployment.yml"
-                    sh "kubectl apply -f ./flask/KubernetesFiles/service.yml"
+                    sh "kubectl apply -f ./flask/KubernetesFiles/servicedeployment.yml"
                 }
             }
         }

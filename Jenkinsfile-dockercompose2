@@ -9,7 +9,7 @@ pipeline
         SSHKEYLOCATION = "/var/lib/jenkins/.ssh/Daniel.pem"
         DOCKERPROJECTNAME = "s0ultak3r/dockerflask"
         DOCKERDBNAME= "s0ultak3r/dockerdb"
-        ANSIBLEFOLDER= "/var/lib/jenkins/ansibleFiles"
+        ANSIBLEFOLDER= "/var/lib/jenkins/AnsibleFiles"
         GITURL= "git@github.com:S0ulTak3r/flask.git"
         REQLOCATION= "./flask/flask-app/requirements.txt"
     }
@@ -77,7 +77,7 @@ pipeline
             {
                 script
                 {
-                    pipelineFunctions.clonegit(env.GITURL)
+                    GitFunctions.clonegit(env.GITURL)
                 }
             }
         }
@@ -95,7 +95,7 @@ pipeline
             {
                 script 
                 {
-                    pipelineFunctions.installDependenciesSystemLvl()
+                    AnsibleFunctions.installDependenciesSystemLvl()
                 }
             }
         }
@@ -113,7 +113,7 @@ pipeline
             {
                 script
                 {
-                    pipelineFunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
+                    DockerFunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
                 }
             }
         }
@@ -131,7 +131,7 @@ pipeline
             {
                 script
                 {
-                    pipelineFunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
+                    DockerFunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
                 }
             }
         }
@@ -150,7 +150,7 @@ pipeline
                 //pulls IP of test instance by automatical means
                 script 
                 {
-                    pipelineFunctions.GetInstanceDetails()
+                    AwsFunctions.GetInstanceDetails()
                 }
             }
         }
@@ -168,7 +168,7 @@ pipeline
             {
                 script
                 {
-                    pipelineFunctions.installDockerRemote(env.ANSIBLEFOLDER,"InstallAllComponents.yml")
+                    AnsibleFunctions.installDockerRemote(env.ANSIBLEFOLDER,"InstallAllComponents.yml")
                 }
             }
         }
@@ -186,10 +186,8 @@ pipeline
             {
                 script
                 {
-                    echo "transferring docker-compose to test"
-                    pipelineFunctions.TransferFile(env.publicTestIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
-                    echo "transferring docker-compose to prod"
-                    pipelineFunctions.TransferFile(env.publicProdIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
+                    ScpFunctions.TransferFile(env.publicTestIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
+                    ScpFunctions.TransferFile(env.publicProdIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
                 }
             }
         }
@@ -207,7 +205,8 @@ pipeline
             {
                 script
                 {
-                    pipelineFunctions.pullFlaskAndDB(env.publicTestIp)
+                    DockerFunctions.PullDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
+                    DockerFunctions.StartDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
                 }
             }
         }
@@ -240,7 +239,9 @@ pipeline
             {
                 script
                 {
-                    pipelineFunctions.closeInstance(env.instanceTestId,env.publicTestIp,env.SSHKEYLOCATION)
+                    DockerFunctions.StopDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
+                    DockerFunctions.cleanDockerContainers(env.publicTestIp,env.SSHKEYLOCATION)
+                    AwsFunctions.closeInstance(env.instanceTestId,env.publicTestIp,env.SSHKEYLOCATION)
                 }
             }
         }
@@ -260,7 +261,9 @@ pipeline
             {
                 script
                 {
-                    pipelineFunctions.pullFlaskAndDB(env.publicProdIp)
+                    DockerFunctions.PullDockerCompose(env.publicProdIp,env.SSHKEYLOCATION)
+                    DockerFunctions.StartDockerCompose(env.publicProdIp,env.SSHKEYLOCATION)
+                    DockerFunctions.cleanDockerContainers(env.publicProdIp,env.SSHKEYLOCATION)
                 }
             }
         }

@@ -86,8 +86,7 @@ pipeline
             {
                 script 
                 {
-                    echo "cloning git repository"
-                    pipelineFunctions.clonegit(env.GITURL)
+                    GitFunctions.clonegit(env.GITURL)
                 }
             }
         }
@@ -105,9 +104,7 @@ pipeline
             {
                 script 
                 {
-                    echo "installing dependencies"
-                    sh 'pip install --upgrade pip'
-                    pipelineFunctions.installDependenciesSystemLvl()
+                    AnsibleFunctions.installDependenciesSystemLvl()
                 }
             }
         }
@@ -125,8 +122,7 @@ pipeline
             {
                 script 
                 {
-                    echo "building dockerFlask image"
-                    pipelineFunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
+                    DockerFunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
                 }
             }
         }
@@ -144,8 +140,7 @@ pipeline
             {
                 script 
                 {
-                    echo "building dockerDB image"
-                    pipelineFunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
+                    DockerFunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
                 }
             }
         }

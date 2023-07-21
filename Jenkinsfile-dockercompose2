@@ -28,7 +28,7 @@ pipeline
             {
                 script 
                 {
-                    pipelineFunctions.checkChanges()
+                    pipelinefunctions.checkChanges()
                 }
             }
         }
@@ -77,7 +77,7 @@ pipeline
             {
                 script
                 {
-                    GitFunctions.clonegit(env.GITURL)
+                    gitfunctions.clonegit(env.GITURL)
                 }
             }
         }
@@ -95,7 +95,7 @@ pipeline
             {
                 script 
                 {
-                    AnsibleFunctions.installDependenciesSystemLvl()
+                    ansiblefunctions.installDependenciesSystemLvl()
                 }
             }
         }
@@ -113,7 +113,7 @@ pipeline
             {
                 script
                 {
-                    DockerFunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
+                    dockerfunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
                 }
             }
         }
@@ -131,7 +131,7 @@ pipeline
             {
                 script
                 {
-                    DockerFunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
+                    dockerfunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
                 }
             }
         }
@@ -150,7 +150,7 @@ pipeline
                 //pulls IP of test instance by automatical means
                 script 
                 {
-                    AwsFunctions.GetInstanceDetails()
+                    awsfunctions.GetInstanceDetails()
                 }
             }
         }
@@ -168,7 +168,7 @@ pipeline
             {
                 script
                 {
-                    AnsibleFunctions.installDockerRemote(env.ANSIBLEFOLDER,"InstallAllComponents.yml")
+                    ansiblefunctions.installDockerRemote(env.ANSIBLEFOLDER,"InstallAllComponents.yml")
                 }
             }
         }
@@ -186,8 +186,8 @@ pipeline
             {
                 script
                 {
-                    ScpFunctions.TransferFile(env.publicTestIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
-                    ScpFunctions.TransferFile(env.publicProdIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
+                    scpfunctions.TransferFile(env.publicTestIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
+                    scpfunctions.TransferFile(env.publicProdIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
                 }
             }
         }
@@ -205,8 +205,8 @@ pipeline
             {
                 script
                 {
-                    DockerFunctions.PullDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
-                    DockerFunctions.StartDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
+                    dockerfunctions.PullDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
+                    dockerfunctions.StartDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
                 }
             }
         }
@@ -239,9 +239,9 @@ pipeline
             {
                 script
                 {
-                    DockerFunctions.StopDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
-                    DockerFunctions.cleanDockerContainers(env.publicTestIp,env.SSHKEYLOCATION)
-                    AwsFunctions.closeInstance(env.instanceTestId)
+                    dockerfunctions.StopDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
+                    dockerfunctions.cleanDockerContainers(env.publicTestIp,env.SSHKEYLOCATION)
+                    awsfunctions.closeInstance(env.instanceTestId)
                 }
             }
         }

@@ -44,7 +44,7 @@ pipeline
                 script 
                 {
                     echo "checking "
-                    pipelineFunctions.checkChanges()
+                    pipelinefunctions.checkChanges()
                 }
             }
         }

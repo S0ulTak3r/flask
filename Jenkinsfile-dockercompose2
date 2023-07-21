@@ -95,7 +95,7 @@ pipeline
             {
                 script 
                 {
-                    ansiblefunctions.installDependenciesSystemLvl(${env.ANSIBLEFOLDER},"installLocal.yml")
+                    ansiblefunctions.installDependenciesSystemLvl(env.ANSIBLEFOLDER,"installLocal.yml")
                 }
             }
         }

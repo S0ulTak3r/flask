@@ -77,7 +77,7 @@ pipeline
             {
                 script
                 {
-                    pipelineFunctions.clone(env.GITURL)
+                    pipelineFunctions.clonegit(env.GITURL)
                 }
             }
         }

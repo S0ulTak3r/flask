@@ -211,8 +211,11 @@ pipeline
                 script
                 {
                     echo "testing test environment..."
-                    sh "sleep 10"
-                    sh "curl http://${env.WINDOWSIP}:${env.KUBECTLTCPPORT}"
+                    retry(30) 
+                    {
+                        sleep 10 // Wait for 10 seconds between retries
+                        sh "curl http://${env.WINDOWSIP}:${env.KUBECTLTCPPORT}"
+                    }
                 }
             }
         }

@@ -1,27 +1,48 @@
-@Library('PipelineFunctions@main') _
-
+@Library('PipelineFunctions') _
 
 pipeline
 {
     agent any
 
-    environment {
+    environment 
+    {
         SSHKEYLOCATION = "/var/lib/jenkins/.ssh/Daniel.pem"
         DOCKERPROJECTNAME = "s0ultak3r/dockerflask"
         DOCKERDBNAME = "s0ultak3r/dockerdb"
         ANSIBLEFOLDER = "/var/lib/jenkins/AnsibleFiles/Daniel-B-AutoAnsible"
-        GITURL = "https://github.com/S0ulTak3r/flask.git"
+        GITURL = "git@github.com:S0ulTak3r/flask.git"
         REQLOCATION = "./flask/flask-app/requirements.txt"
+        GIT_SSH_COMMAND = "ssh -o StrictHostKeyChecking=no"
+        WINDOWSIP="192.168.56.1"
     }
 
-    triggers {
+    triggers 
+    {
         pollSCM('*/1 * * * *')
     }
 
-    stages {
-        stage('Changes Check') {
+    stages 
+    {
+        stage('start proxy')
+        {
+            steps
+            {
+                script
+                {
+                    echo "starting proxy server..."
+                    sh '''
+                        nohup ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "kubectl proxy --address=0.0.0.0 --port=8080 --accept-hosts=.*" &
+                    '''
+                }
+            }
+        }
+
+        stage('Changes Check') 
+        {
             steps {
-                script {
+                script 
+                {
+                    echo "checking "
                     pipelineFunctions.checkChanges()
                 }
             }
@@ -33,9 +54,12 @@ pipeline
                     return env.NO_CHANGES != "true"
                 }
             }
-            steps {
-                script {
-                    try {
+            steps 
+            {
+                script 
+                {
+                    try 
+                    {
                         echo "attempting Cleanup"
                         sh 'rm -rf *'
                         sh "docker images | grep -w 's0ultak3r/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerflask:{}"
@@ -49,72 +73,234 @@ pipeline
             }
         }
 
-        stage('Clone') {
-            when {
-                expression {
+        stage('Clone') 
+        {
+            when 
+            {
+                expression 
+                {
                     return env.NO_CHANGES != "true"
                 }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
+                    echo "cloning git repository"
                     pipelineFunctions.clonegit(env.GITURL)
                 }
             }
         }
 
-        stage('Install Dependencies') {
-            when {
-                expression {
+        stage('Install Dependencies') 
+        {
+            when 
+            {
+                expression 
+                {
                     return env.NO_CHANGES != "true"
                 }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
+                    echo "installing dependencies"
+                    sh 'pip install --upgrade pip'
                     pipelineFunctions.installDependenciesSystemLvl()
                 }
             }
         }
 
-        stage('Build-create dockerFlask image and push') {
-            when {
-                expression {
+        stage('Build-create dockerFlask image and push') 
+        {
+            when 
+            {
+                expression 
+                {
                     return env.NO_CHANGES != "true"
                 }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
+                    echo "building dockerFlask image"
                     pipelineFunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
                 }
             }
         }
 
-        stage('Build-create dockerDB image and push') {
-            when {
-                expression {
+        stage('Build-create dockerDB image and push') 
+        {
+            when 
+            {
+                expression 
+                {
                     return env.NO_CHANGES != "true"
                 }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
+                    echo "building dockerDB image"
                     pipelineFunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
                 }
             }
         }
 
-        stage('Deployment') {
-            when {
-                expression {
+
+
+        stage('Deployment To Testing Enviornment') 
+        {
+            when 
+            {
+                expression 
+                {
                     return env.NO_CHANGES != "true"
                 }
             }
-            steps {
-                echo 'Making Sure I am in the right context...'
-                sh "kubectl config use-context docker-desktop"
-                echo "Deploying application"
-                sh "kubectl apply -f ./flask/KubernetesFiles/deployment.yml"
-                sh "kubectl apply -f ./flask/KubernetesFiles/service.yml"
+            steps 
+            {
+                script
+                {
+                    echo 'Making Sure I am in the right context...'
+                    sh "kubectl config use-context docker-desktop"
+                    echo "Deploying application"
+                    sh '''
+                        kubectl apply -f ./flask/KubernetesFiles/deployment.yml
+                        kubectl apply -f ./flask/KubernetesFiles/service.yml
+                    '''
+                    echo "pulling tcp port"
+                    def tcpport=sh(script: "kubectl get service flask-service -o=jsonpath='{.spec.ports[*].nodePort}'", returnStdout: true).trim()
+                    env.KUBECTLTCPPORT = tcpport
+                }
+
             }
         }
-    }
 
+
+
+        stage('Rollout Restart') 
+        {
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                echo 'Performing rollout restart...'
+                sh "kubectl rollout restart deployment/flask-deployment"
+                sh "kubectl rollout restart deployment/mysql-deployment"
+            }
+        }
+
+        stage('Testing Test Enviornment')
+        {
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps
+            {
+                script
+                {
+                    echo "testing test environment..."
+                    retry(30) 
+                    {
+                        sleep 10 // Wait for 10 seconds between retries
+                        sh "curl http://${env.WINDOWSIP}:${env.KUBECTLTCPPORT}"
+                    }
+                }
+            }
+        }
+
+        stage('Closing Testing Environment')
+        {
+            when
+            {
+                expression
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps
+            {
+                script
+                {
+                    echo "closing test environment..."
+                    sh "kubectl delete -f ./flask/KubernetesFiles/deployment.yml"
+                    sh "kubectl delete -f ./flask/KubernetesFiles/service.yml"
+                }
+            }
+        }
+
+
+        stage('Deploying On Google Kubernetes Production')
+        {
+            when
+            {
+                expression
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps
+            {
+                script
+                {
+                    echo "deploying on google kubernetes production..."
+                    sh "kubectl config use-context gke_vernal-tracer-393305_europe-north1-a_cluster-1"
+                    sh "kubectl apply -f ./flask/KubernetesFiles/deployment.yml"
+                    sh "kubectl apply -f ./flask/KubernetesFiles/service.yml"
+                }
+            }
+        }
+
+
+        stage('Rollout Restart Production') 
+        {
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps 
+            {
+                echo 'Performing rollout restart...'
+                sh "kubectl rollout restart deployment/flask-deployment"
+                sh "kubectl rollout restart deployment/mysql-deployment"
+                sh "kubectl get all"
+            }
+        }
+
+        stage('closing proxy')
+        {
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps
+            {
+                echo "closing proxy server..."
+                sh '''
+                    ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "taskkill /F /IM kubectl.exe"
+                '''
+            }
+        }
+
+
+    }
 }

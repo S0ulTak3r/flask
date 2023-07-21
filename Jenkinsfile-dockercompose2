@@ -1,4 +1,4 @@
-@Library('PipelineFunctions') _
+@Library('FunctionsLibrary') _
 
 pipeline 
 {

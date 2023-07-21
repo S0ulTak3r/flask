@@ -86,7 +86,7 @@ pipeline
             {
                 script 
                 {
-                    GitFunctions.clonegit(env.GITURL)
+                    gitfunctions.clonegit(env.GITURL)
                 }
             }
         }
@@ -104,7 +104,7 @@ pipeline
             {
                 script 
                 {
-                    AnsibleFunctions.installDependenciesSystemLvl()
+                    ansiblefunctions.installDependenciesSystemLvl(env.ANSIBLEFOLDER,"installLocal.yml")
                 }
             }
         }
@@ -122,7 +122,7 @@ pipeline
             {
                 script 
                 {
-                    DockerFunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
+                    dockerfunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
                 }
             }
         }
@@ -140,7 +140,7 @@ pipeline
             {
                 script 
                 {
-                    DockerFunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
+                    dockerfunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
                 }
             }
         }

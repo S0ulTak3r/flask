@@ -1,4 +1,4 @@
-@Library('pipelinefunctions')
+@Library('PipelineFunctions') _
 
 pipeline 
 {

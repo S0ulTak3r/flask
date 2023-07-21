@@ -9,7 +9,7 @@ pipeline
         SSHKEYLOCATION = "/var/lib/jenkins/.ssh/Daniel.pem"
         DOCKERPROJECTNAME = "s0ultak3r/dockerflask"
         DOCKERDBNAME= "s0ultak3r/dockerdb"
-        ANSIBLEFOLDER= "/var/lib/jenkins/AnsibleFiles"
+        ANSIBLEFOLDER= "/var/lib/jenkins/AnsibleFiles/Daniel-B-AutoAnsible"
         GITURL= "git@github.com:S0ulTak3r/flask.git"
         REQLOCATION= "./flask/flask-app/requirements.txt"
     }

@@ -25,7 +25,7 @@ pipeline
             {
                 //clonning from github to workspace
                 echo 'Cloning repository...'
-                sh 'git clone https://github.com/S0ulTak3r/flask.git'
+                sh 'git clone git@github.com:S0ulTak3r/flask.git'
                 sh 'ls'
             }
         }

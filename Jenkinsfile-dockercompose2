@@ -10,7 +10,7 @@ pipeline
         DOCKERPROJECTNAME = "s0ultak3r/dockerflask"
         DOCKERDBNAME= "s0ultak3r/dockerdb"
         ANSIBLEFOLDER= "/var/lib/jenkins/ansibleFiles"
-        GITURL= "https://github.com/S0ulTak3r/flask.git"
+        GITURL= "git@github.com:S0ulTak3r/flask.git"
         REQLOCATION= "./flask/flask-app/requirements.txt"
     }
 

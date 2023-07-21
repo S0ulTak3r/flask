@@ -278,9 +278,9 @@ pipeline
             {
                 script
                 {
-                    DockerFunctions.PullDockerCompose(env.publicProdIp,env.SSHKEYLOCATION)
-                    DockerFunctions.StartDockerCompose(env.publicProdIp,env.SSHKEYLOCATION)
-                    DockerFunctions.cleanDockerContainers(env.publicProdIp,env.SSHKEYLOCATION)
+                    dockerfunctions.PullDockerCompose(env.publicProdIp,env.SSHKEYLOCATION)
+                    dockerfunctions.StartDockerCompose(env.publicProdIp,env.SSHKEYLOCATION)
+                    dockerfunctions.cleanDockerContainers(env.publicProdIp,env.SSHKEYLOCATION)
                 }
             }
         }

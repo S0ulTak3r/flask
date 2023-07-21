@@ -239,7 +239,15 @@ pipeline
             }
             steps 
             {
-                sh "curl http://${env.publicTestIp}:5000"
+                script
+                {
+                    echo "Testing test environment..."
+                    retry(30) 
+                    {
+                        sleep 10 // Wait for 10 seconds between retries
+                        sh "curl http://${env.publicTestIp}:5000"
+                    }
+                }
             }
         }
         

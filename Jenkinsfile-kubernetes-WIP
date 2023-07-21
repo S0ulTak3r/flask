@@ -14,6 +14,7 @@ pipeline
         REQLOCATION = "./flask/flask-app/requirements.txt"
         GIT_SSH_COMMAND = "ssh -o StrictHostKeyChecking=no"
         WINDOWSIP="192.168.56.1"
+        
     }
 
     triggers 

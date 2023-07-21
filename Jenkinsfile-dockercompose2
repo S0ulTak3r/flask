@@ -241,7 +241,7 @@ pipeline
                 {
                     DockerFunctions.StopDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
                     DockerFunctions.cleanDockerContainers(env.publicTestIp,env.SSHKEYLOCATION)
-                    AwsFunctions.closeInstance(env.instanceTestId,env.publicTestIp,env.SSHKEYLOCATION)
+                    AwsFunctions.closeInstance(env.instanceTestId)
                 }
             }
         }

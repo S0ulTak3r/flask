@@ -143,7 +143,7 @@ pipeline
 
                         // Update the kubectl context
                         echo 'Updating kubectl context...'
-                        sh 'gcloud container clusters get-credentials cluster-flask2 --region europe-north1 --project my-gcp-project'
+                        sh 'gcloud container clusters get-credentials cluster-flask2 --zone europe-north1-a --project vernal-tracer-393305'
                     }
                 }
             }

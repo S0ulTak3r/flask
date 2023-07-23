@@ -1,20 +1,27 @@
-provider "google" {
-  project = var.project_id
-  region  = var.region
+terraform {
+  required_providers {
+    google = {
+      source = "hashicorp/google"
+      version = "3.5.0"
+    }
+  }
 }
 
+provider "google" {
+  project = "vernal-tracer-393305"
+  region  = "europe-north1"
+}
 
 module "gke" {
-  source  = "terraform-google-modules/kubernetes-engine/google"
+  source = "terraform-google-modules/kubernetes-engine/google"
   version = "~> 15.0"
 
-  project_id   = var.project_id
-  name         = "cluster-flask"
-  region       = var.region
-  network      = "default"
-  subnetwork   = "default"
-
-  release_channel = "REGULAR"  // Stable versions with some delay
+  name               = "cluster-flask"
+  project_id         = "vernal-tracer-393305"
+  region             = "europe-north1"
+  network            = "default"
+  subnetwork         = "default"
+  release_channel    = "REGULAR"
 
   node_pools = [
     {
@@ -28,24 +35,15 @@ module "gke" {
       auto_repair        = true
       auto_upgrade       = true
       preemptible        = false
-      initial_node_count = 1
     }
   ]
 
-  ip_range_services = "10.0.0.0/16"
-  ip_range_pods = "10.0.1.0/16"
+  ip_range_pods = "10.0.0.0/16"
+  ip_range_services = "10.0.1.0/16"
 
-  node_pools_additional_zones = []
-}
+  remove_default_node_pool = true
+  enable_private_endpoint  = false
+  enable_private_nodes     = false
 
-variable "project_id" {
-  description = "The project ID to host the cluster in"
-  type        = string
-  default     = "vernal-tracer-393305"
-}
-
-variable "region" {
-  description = "The region to host the cluster in"
-  type        = string
-  default     = "europe-north1"
+  default_max_pods_per_node = 110
 }

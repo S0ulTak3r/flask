@@ -52,7 +52,9 @@ resource "google_container_node_pool" "primary" {
       "https://www.googleapis.com/auth/logging.write",
       "https://www.googleapis.com/auth/monitoring",
     ]
+  }
 
+  management {
     auto_repair  = true
     auto_upgrade = true
   }

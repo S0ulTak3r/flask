@@ -49,7 +49,7 @@ resource "google_container_node_pool" "primary" {
 
   node_config {
     preemptible  = false
-    machine_type = "n1-g1-small"
+    machine_type = "g1-small"
     disk_size_gb = 80
     image_type = "COS_CONTAINERD"
 

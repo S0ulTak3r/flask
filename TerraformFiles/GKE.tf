@@ -19,7 +19,6 @@ module "gke" {
   region       = "europe-north1"
   network      = "default"
   subnetwork   = "default"
-  location     = "europe-north1"
 
   remove_default_node_pool = true
   initial_node_count       = 1
@@ -41,9 +40,6 @@ module "gke" {
 
   ip_range_pods = "10.0.0.0/16"
   ip_range_services = "10.0.1.0/16"
-
-  enable_private_endpoint  = false
-  enable_private_nodes     = false
 
   default_max_pods_per_node = 110
 }

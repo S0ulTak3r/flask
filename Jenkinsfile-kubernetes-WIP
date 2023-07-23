@@ -334,7 +334,6 @@ pipeline
                     k8functions.rollout("deployment/mysql-deployment")
                     k8functions.getAllInfo()
                 }
-
             }
         }
 

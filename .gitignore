@@ -1,1 +1,5 @@
-pipelineFunctions
+# .gitignore
+TerraformFiles/.terraform/
+*.tfstate*
+*.terraform.lock.hcl*
+pipelineFunctions/

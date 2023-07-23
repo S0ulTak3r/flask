@@ -27,7 +27,7 @@ resource "google_compute_network" "vpc_network" {
 
 resource "google_container_cluster" "primary" {
   name     = "cluster-flask"
-  location = "europe-north1"
+  location = "europe-north1-a"  # Set the location to europe-north1-a
 
   remove_default_node_pool = true
   initial_node_count = 1
@@ -43,7 +43,7 @@ resource "google_container_cluster" "primary" {
 
 resource "google_container_node_pool" "primary" {
   name       = "default-pool"
-  location   = "europe-north1"
+  location   = "europe-north1-a"  # Set the location to europe-north1-a
   cluster    = google_container_cluster.primary.name
   node_count = 1
 

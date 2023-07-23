@@ -4,6 +4,10 @@ terraform {
       source = "hashicorp/google"
     }
   }
+  backend "gcs" {
+    bucket = "my-terraform-state-bucket-flaskproject"
+    prefix = "terraform/state"
+  }
 }
 
 provider "google" {

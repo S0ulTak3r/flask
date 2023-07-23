@@ -46,19 +46,9 @@ pipeline
             {
                 script
                 {
-                    try
-                    {
-                        echo "attempting Cleanup"
-                        sh 'rm -rf *'
-                        sh "docker images | grep -w 's0ultak3r/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerflask:{}"
-                        sh "docker images | grep -w 's0ultak3r/dockerdb' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerdb:{}"
-                    }
-                    catch (Exception e)
-                    {
-                        echo "Error: ${e.getMessage()}"
-                        currentBuild.result = 'FAILURE'
-                        error "Failed to cleanup"
-                    }
+                    pipelinefunctions.cleanupWorkspace()
+                    dockerfunctions.deleteImageVersion(env.DOCKERPROJECTNAME)
+                    dockerfunctions.deleteImageVersion(env.DOCKERDBNAME)
                 }
 
             }
@@ -241,12 +231,7 @@ pipeline
             {
                 script
                 {
-                    echo "Testing test environment..."
-                    retry(30) 
-                    {
-                        sleep 10 // Wait for 10 seconds between retries
-                        sh "curl http://${env.publicTestIp}:5000"
-                    }
+                    testingfunctions.curlTest(env.publicTestIp,"5000")
                 }
             }
         }

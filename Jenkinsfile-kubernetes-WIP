@@ -30,10 +30,7 @@ pipeline
             {
                 script
                 {
-                    echo "starting proxy server..."
-                    sh '''
-                        nohup ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "kubectl proxy --address=0.0.0.0 --port=8080 --accept-hosts=.*" &
-                    '''
+                    k8functions.startProxyRemote(env.WINDOWSIP)
                 }
             }
         }
@@ -59,17 +56,12 @@ pipeline
             {
                 script 
                 {
-                    try 
-                    {
-                        echo "attempting Cleanup"
-                        sh 'rm -rf *'
-                        sh "docker images | grep -w 's0ultak3r/dockerflask' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerflask:{}"
-                        sh "docker images | grep -w 's0ultak3r/dockerdb' | grep -w 1\\.[0-9]* | awk '{print \$2}' | xargs -I {} docker rmi s0ultak3r/dockerdb:{}"
-                    } catch (Exception e) {
-                        echo "Error: ${e.getMessage()}"
-                        currentBuild.result = 'FAILURE'
-                        error "Failed to cleanup"
-                    }
+
+                    echo "attempting Workspace Cleanup"
+                    pipelinefunctions.cleanupWorkspace()
+                    echo "attempting Docker Cleanup"
+                    dockerfunctions.deleteImageVersion("s0ultak3r/dockerflask")
+                    dockerfunctions.deleteImageVersion("s0ultak3r/dockerdb")
                 }
             }
         }
@@ -106,6 +98,24 @@ pipeline
                 script 
                 {
                     ansiblefunctions.installDependenciesSystemLvl(env.ANSIBLEFOLDER,"installLocal.yml")
+                }
+            }
+        }
+
+        stage('Docker Login')
+        {
+            when 
+            {
+                expression 
+                {
+                    return env.NO_CHANGES != "true"
+                }
+            }
+            steps
+            {
+                script
+                {
+                    dockerfunctions.loginDockerHub()
                 }
             }
         }
@@ -162,12 +172,12 @@ pipeline
                 script
                 {
                     echo 'Making Sure I am in the right context...'
-                    sh "kubectl config use-context docker-desktop"
+                    k8functions.changeContext("docker-desktop")
+
                     echo "Deploying application"
-                    sh '''
-                        kubectl apply -f ./flask/KubernetesFiles/deployment.yml
-                        kubectl apply -f ./flask/KubernetesFiles/service.yml
-                    '''
+                    k8functions.applyWithFile("./flask/KubernetesFiles/deployment.yml")
+                    k8functions.applyWithFile("./flask/KubernetesFiles/service.yml")
+
                     echo "pulling tcp port"
                     def tcpport=sh(script: "kubectl get service flask-service -o=jsonpath='{.spec.ports[*].nodePort}'", returnStdout: true).trim()
                     env.KUBECTLTCPPORT = tcpport
@@ -189,9 +199,11 @@ pipeline
             }
             steps 
             {
-                echo 'Performing rollout restart...'
-                sh "kubectl rollout restart deployment/flask-deployment"
-                sh "kubectl rollout restart deployment/mysql-deployment"
+                script
+                {
+                    k8functions.rollout("deployment/flask-deployment")
+                    k8functions.rollout("deployment/mysql-deployment")
+                }
             }
         }
 
@@ -208,12 +220,7 @@ pipeline
             {
                 script
                 {
-                    echo "testing test environment..."
-                    retry(30) 
-                    {
-                        sleep 10 // Wait for 10 seconds between retries
-                        sh "curl http://${env.WINDOWSIP}:${env.KUBECTLTCPPORT}"
-                    }
+                    testingfunctions.curlTest(env.WINDOWSIP,env.KUBECTLTCPPORT)
                 }
             }
         }
@@ -232,8 +239,8 @@ pipeline
                 script
                 {
                     echo "closing test environment..."
-                    sh "kubectl delete -f ./flask/KubernetesFiles/deployment.yml"
-                    sh "kubectl delete -f ./flask/KubernetesFiles/service.yml"
+                    k8functions.deleteWithFile("./flask/KubernetesFiles/deployment.yml")
+                    k8functions.deleteWithFile("./flask/KubernetesFiles/service.yml")
                 }
             }
         }
@@ -253,9 +260,9 @@ pipeline
                 script
                 {
                     echo "deploying on google kubernetes production..."
-                    sh "kubectl config use-context gke_vernal-tracer-393305_europe-north1-a_cluster-1"
-                    sh "kubectl apply -f ./flask/KubernetesFiles/deployment.yml"
-                    sh "kubectl apply -f ./flask/KubernetesFiles/servicedeployment.yml"
+                    k8functions.changeContext("gke_vernal-tracer-393305_europe-north1-a_cluster-1")
+                    k8functions.applyWithFile("./flask/KubernetesFiles/deployment.yml")
+                    k8functions.applyWithFile("./flask/KubernetesFiles/servicedeployment.yml")
                 }
             }
         }
@@ -273,9 +280,9 @@ pipeline
             steps 
             {
                 echo 'Performing rollout restart...'
-                sh "kubectl rollout restart deployment/flask-deployment"
-                sh "kubectl rollout restart deployment/mysql-deployment"
-                sh "kubectl get all"
+                k8functions.rollout("deployment/flask-deployment")
+                k8functions.rollout("deployment/mysql-deployment")
+                k8functions.getAllInfo()
             }
         }
 
@@ -290,10 +297,7 @@ pipeline
             }
             steps
             {
-                echo "closing proxy server..."
-                sh '''
-                    ssh -o StrictHostKeyChecking=no creed@192.168.56.1 "taskkill /F /IM kubectl.exe"
-                '''
+                k8functions.closeProxyRemote(env.WINDOWSIP)
             }
         }
 

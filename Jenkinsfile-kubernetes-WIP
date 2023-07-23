@@ -26,39 +26,7 @@ pipeline
     {
 
 
-        stage('Prepare GKE Cluster') 
-        {
-            steps 
-            {
-                script 
-                {
-                    // Change the current working directory to where your Terraform files are
-                    dir('./flask/TerraformFiles') 
-                    {
-                        // Initialize Terraform
-                        sh 'terraform init'
 
-                        // Check if the GKE cluster exists
-                        def clusterStatus = sh(script: "gcloud container clusters describe cluster-flask --region europe-north1 --format='get(status)'", returnStdout: true).trim()
-                        
-                        // If the cluster does not exist or it's not running, apply the Terraform configuration
-                        if (clusterStatus != 'RUNNING') 
-                        {
-                            echo 'GKE cluster does not exist or not running. Creating/updating now...'
-                            sh 'terraform apply -auto-approve'
-                        } 
-                        else 
-                        {
-                            echo 'GKE cluster already exists and running. Proceeding...'
-                        }
-
-                        // Update the kubectl context
-                        echo 'Updating kubectl context...'
-                        sh 'gcloud container clusters get-credentials cluster-flask --region europe-north1 --project my-gcp-project'
-                    }
-                }
-            }
-        }
 
 
         stage('start proxy')
@@ -139,6 +107,40 @@ pipeline
             }
         }
 
+        stage('Prepare GKE Cluster') 
+        {
+            steps 
+            {
+                script 
+                {
+                    // Change the current working directory to where your Terraform files are
+                    dir('./flask/TerraformFiles') 
+                    {
+                        // Initialize Terraform
+                        sh 'terraform init'
+
+                        // Check if the GKE cluster exists
+                        def clusterStatus = sh(script: "gcloud container clusters describe cluster-flask --region europe-north1 --format='get(status)'", returnStdout: true).trim()
+                        
+                        // If the cluster does not exist or it's not running, apply the Terraform configuration
+                        if (clusterStatus != 'RUNNING') 
+                        {
+                            echo 'GKE cluster does not exist or not running. Creating/updating now...'
+                            sh 'terraform apply -auto-approve'
+                        } 
+                        else 
+                        {
+                            echo 'GKE cluster already exists and running. Proceeding...'
+                        }
+
+                        // Update the kubectl context
+                        echo 'Updating kubectl context...'
+                        sh 'gcloud container clusters get-credentials cluster-flask --region europe-north1 --project my-gcp-project'
+                    }
+                }
+            }
+        }
+        
         stage('Docker Login')
         {
             when 
@@ -316,10 +318,14 @@ pipeline
             }
             steps 
             {
-                echo 'Performing rollout restart...'
-                k8functions.rollout("deployment/flask-deployment")
-                k8functions.rollout("deployment/mysql-deployment")
-                k8functions.getAllInfo()
+                script
+                {
+                    echo 'Performing rollout restart...'
+                    k8functions.rollout("deployment/flask-deployment")
+                    k8functions.rollout("deployment/mysql-deployment")
+                    k8functions.getAllInfo()
+                }
+
             }
         }
 
@@ -334,7 +340,10 @@ pipeline
             }
             steps
             {
-                k8functions.closeProxyRemote(env.WINDOWSIP)
+                script
+                {
+                    k8functions.closeProxyRemote(env.WINDOWSIP)
+                }
             }
         }
 

@@ -308,7 +308,7 @@ pipeline
                 script
                 {
                     echo "deploying on google kubernetes production..."
-                    k8functions.changeContext("gke_vernal-tracer-393305_europe-north1_cluster-flask2")
+                    k8functions.changeContext("gke_vernal-tracer-393305_europe-north1-a_cluster-flask2")
                     k8functions.applyWithFile("./flask/KubernetesFiles/deployment.yml")
                     k8functions.applyWithFile("./flask/KubernetesFiles/servicedeployment.yml")
                 }

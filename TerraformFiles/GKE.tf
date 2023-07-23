@@ -1,14 +1,14 @@
 terraform {
   required_providers {
     google = {
-      source  = "hashicorp/google"
+      source = "hashicorp/google"
     }
   }
 }
 
 provider "google" {
-  project = "vernal-tracer-393305"
-  region  = "europe-north1"
+  project     = "vernal-tracer-393305"
+  region      = "europe-north1"
 }
 
 resource "google_compute_network" "vpc_network" {
@@ -16,30 +16,47 @@ resource "google_compute_network" "vpc_network" {
   auto_create_subnetworks = true
 }
 
-module "gke" {
-  source  = "terraform-google-modules/kubernetes-engine/google"
-  
-  project_id   = "vernal-tracer-393305"
-  name         = "cluster-flask"
-  region       = "europe-north1"
-
-  network      = google_compute_network.vpc_network.name
+resource "google_container_cluster" "primary" {
+  name     = "my-gke-cluster"
+  location = "europe-north1"
 
   remove_default_node_pool = true
-  initial_node_count       = 1
+  initial_node_count = 1
 
-  node_pools = [
-    {
-      name               = "default-pool"
-      machine_type       = "n1-g1-small"
-      min_count          = 1
-      max_count          = 1
-      disk_size_gb       = 80
-      disk_type          = "pd-standard"
-      image_type         = "COS_CONTAINERD"
-      auto_repair        = true
-      auto_upgrade       = true
-      preemptible        = false
+  master_auth {
+    username = ""
+    password = ""
+
+    client_certificate_config {
+      issue_client_certificate = false
     }
-  ]
+  }
+
+  network    = google_compute_network.vpc_network.name
+}
+
+resource "google_container_node_pool" "primary" {
+  name       = "default-pool"
+  location   = "europe-north1"
+  cluster    = google_container_cluster.primary.name
+  node_count = 1
+
+  node_config {
+    preemptible  = false
+    machine_type = "n1-g1-small"
+    disk_size_gb = 80
+    image_type = "COS_CONTAINERD"
+
+    metadata = {
+      disable-legacy-endpoints = "true"
+    }
+
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+    ]
+
+    auto_repair  = true
+    auto_upgrade = true
+  }
 }

@@ -32,31 +32,10 @@ module "gke" {
     }
   ]
 
-  node_pools_oauth_scopes = {
-    all = []
-  }
+  ip_range_services = "10.0.0.0/16"
+  ip_range_pods = "10.0.1.0/16"
 
-  node_pools_labels = {
-    all = {}
-  }
-
-  node_pools_metadata = {
-    all = {}
-  }
-
-  node_pools_taints = {
-    all = []
-  }
-
-  node_pools_tags = {
-    all = []
-  }
-
-  node_pools_additional_zones = {
-    all = []
-  }
-
-  default_max_pods_per_node = 110
+  node_pools_additional_zones = []
 }
 
 variable "project_id" {

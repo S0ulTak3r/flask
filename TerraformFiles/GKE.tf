@@ -11,6 +11,11 @@ provider "google" {
   region  = "europe-north1"
 }
 
+resource "google_compute_network" "vpc_network" {
+  name                    = "vpc-network"
+  auto_create_subnetworks = true
+}
+
 module "gke" {
   source  = "terraform-google-modules/kubernetes-engine/google"
   
@@ -18,8 +23,7 @@ module "gke" {
   name         = "cluster-flask"
   region       = "europe-north1"
 
-  // Let the module create a new VPC network and subnetwork.
-  create_subnetwork = true
+  network      = google_compute_network.vpc_network.name
 
   remove_default_node_pool = true
   initial_node_count       = 1
@@ -38,6 +42,4 @@ module "gke" {
       preemptible        = false
     }
   ]
-
-  default_max_pods_per_node = 110
 }

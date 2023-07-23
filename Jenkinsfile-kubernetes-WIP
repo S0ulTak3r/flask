@@ -124,7 +124,7 @@ pipeline
 
                         // Check if the GKE cluster exists
                         try {
-                            def clusterStatus = sh(script: "gcloud container clusters describe cluster-flask --region europe-north1 --format='get(status)'", returnStdout: true).trim()
+                            def clusterStatus = sh(script: "gcloud container clusters describe cluster-flask2 --region europe-north1 --format='get(status)'", returnStdout: true).trim()
                             // If the command didn't throw an error, then the cluster exists
                             clusterExists = true
                         } catch(Exception e) {
@@ -143,7 +143,7 @@ pipeline
 
                         // Update the kubectl context
                         echo 'Updating kubectl context...'
-                        sh 'gcloud container clusters get-credentials cluster-flask --region europe-north1 --project my-gcp-project'
+                        sh 'gcloud container clusters get-credentials cluster-flask2 --region europe-north1 --project my-gcp-project'
                     }
                 }
             }
@@ -308,7 +308,7 @@ pipeline
                 script
                 {
                     echo "deploying on google kubernetes production..."
-                    k8functions.changeContext("gke_vernal-tracer-393305_europe-north1_cluster-flask")
+                    k8functions.changeContext("gke_vernal-tracer-393305_europe-north1_cluster-flask2")
                     k8functions.applyWithFile("./flask/KubernetesFiles/deployment.yml")
                     k8functions.applyWithFile("./flask/KubernetesFiles/servicedeployment.yml")
                 }

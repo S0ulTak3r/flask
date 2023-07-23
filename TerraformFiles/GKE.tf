@@ -1,11 +1,10 @@
-provider "google" 
-{
+provider "google" {
   project = var.project_id
   region  = var.region
 }
 
-module "gke" 
-{
+
+module "gke" {
   source  = "terraform-google-modules/kubernetes-engine/google"
   version = "~> 15.0"
 
@@ -66,15 +65,13 @@ module "gke"
   default_max_pods_per_node = 110
 }
 
-variable "project_id" 
-{
+variable "project_id" {
   description = "The project ID to host the cluster in"
   type        = string
   default     = "vernal-tracer-393305"
 }
 
-variable "region" 
-{
+variable "region" {
   description = "The region to host the cluster in"
   type        = string
   default     = "europe-north1"

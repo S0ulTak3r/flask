@@ -17,7 +17,7 @@ resource "google_compute_network" "vpc_network" {
 }
 
 resource "google_container_cluster" "primary" {
-  name     = "my-gke-cluster"
+  name     = "cluster-flask"
   location = "europe-north1"
 
   remove_default_node_pool = true

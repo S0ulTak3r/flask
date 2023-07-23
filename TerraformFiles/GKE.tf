@@ -1,8 +1,7 @@
 terraform {
   required_providers {
     google = {
-      source = "hashicorp/google"
-      version = "3.5.0"
+      source  = "hashicorp/google"
     }
   }
 }
@@ -14,14 +13,16 @@ provider "google" {
 
 module "gke" {
   source = "terraform-google-modules/kubernetes-engine/google"
-  version = "~> 15.0"
 
-  name               = "cluster-flask"
-  project_id         = "vernal-tracer-393305"
-  region             = "europe-north1"
-  network            = "default"
-  subnetwork         = "default"
-  release_channel    = "REGULAR"
+  name         = "cluster-flask"
+  project_id   = "vernal-tracer-393305"
+  region       = "europe-north1"
+  network      = "default"
+  subnetwork   = "default"
+  location     = "europe-north1"
+
+  remove_default_node_pool = true
+  initial_node_count       = 1
 
   node_pools = [
     {
@@ -41,7 +42,6 @@ module "gke" {
   ip_range_pods = "10.0.0.0/16"
   ip_range_services = "10.0.1.0/16"
 
-  remove_default_node_pool = true
   enable_private_endpoint  = false
   enable_private_nodes     = false
 

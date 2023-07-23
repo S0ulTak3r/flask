@@ -32,33 +32,27 @@ module "gke" {
     }
   ]
 
-  node_pools_oauth_scopes = 
-  {
+  node_pools_oauth_scopes = {
     all = []
   }
 
-  node_pools_labels = 
-  {
+  node_pools_labels = {
     all = {}
   }
 
-  node_pools_metadata = 
-  {
+  node_pools_metadata = {
     all = {}
   }
 
-  node_pools_taints = 
-  {
+  node_pools_taints = {
     all = []
   }
 
-  node_pools_tags = 
-  {
+  node_pools_tags = {
     all = []
   }
 
-  node_pools_additional_zones = 
-  {
+  node_pools_additional_zones = {
     all = []
   }
 

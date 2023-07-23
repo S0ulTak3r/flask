@@ -12,13 +12,14 @@ provider "google" {
 }
 
 module "gke" {
-  source = "terraform-google-modules/kubernetes-engine/google"
-
-  name         = "cluster-flask"
+  source  = "terraform-google-modules/kubernetes-engine/google"
+  
   project_id   = "vernal-tracer-393305"
+  name         = "cluster-flask"
   region       = "europe-north1"
-  network      = "default"
-  subnetwork   = "default"
+
+  // Let the module create a new VPC network and subnetwork.
+  create_subnetwork = true
 
   remove_default_node_pool = true
   initial_node_count       = 1
@@ -37,9 +38,6 @@ module "gke" {
       preemptible        = false
     }
   ]
-
-  ip_range_pods = "10.0.0.0/16"
-  ip_range_services = "10.0.1.0/16"
 
   default_max_pods_per_node = 110
 }

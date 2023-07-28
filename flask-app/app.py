@@ -5,7 +5,7 @@ import random
 import time
 
 
-app = Flask(__name__, template_folder='Web', static_folder='CSS')
+app = Flask(__name__, template_folder='Web', static_folder='Static')
 
 def establish_db_connection():
     while True:
@@ -31,6 +31,10 @@ def intro():
 @app.route("/second_intro")
 def second_intro():
     return render_template("second_intro.html")
+
+@app.route("/portfolio")
+def portfolio():
+    return render_template("portfolio.html")
 
 @app.route("/welcome", methods=["GET", "POST"])
 def welcome():

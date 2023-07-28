@@ -25,5 +25,5 @@ function showBio(isYes) {
 }
 
 setTimeout(() => {
-    window.location.href = "/welcome";
+    window.location.href = "/portfolio";
 }, 30000);

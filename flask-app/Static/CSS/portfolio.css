@@ -474,7 +474,7 @@ span {
 /* About Section */
 .section_about {
     position: relative; /* Added this line */
-    background-color: #5c6b9c;
+    background-color: var(--first-color);
     border-radius: 45px;
     padding: 20px;
     margin-top: 20vh;

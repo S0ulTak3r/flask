@@ -13,22 +13,20 @@
         <div class="overlay third"></div>
 
         <!-- HEADER -->
-        <header class="l-header">
+        <header class="l-header" id="myHeader">
             <nav class="nav bd-grid">
                 <div>
-                    <a href="#" class="nav__logo">Bedimcode</a>
+                    <a href="#" class="nav__logo">DB-Production</a>
                 </div>
-
                 <div class="nav__menu" id="nav-menu">
                     <ul class="nav__list">
                         <li class="nav__item"><a href="#" class="nav__link">Home</a></li>
-                        <li class="nav__item"><a href="#" class="nav__link">About</a></li>
+                        <li class="nav__item"><a href="#about" class="nav__link">About</a></li>
                         <li class="nav__item"><a href="#" class="nav__link">Services</a></li>
                         <li class="nav__item"><a href="#" class="nav__link">Blog</a></li>
                         <li class="nav__item"><a href="#" class="nav__link">Contact</a></li>
                     </ul>
                 </div>
-
                 <div class="nav__toggle" id="nav-toggle">
                     <ion-icon name="menu"></ion-icon>
                 </div>
@@ -39,28 +37,57 @@
         <main class="l-main bd-grid">
             <div class="home">
                 <div class="home__information">
-                    <span class="home__pressent anime-text">Hello, My name is</span>
-                    <h1 class="home__title anime-text">John Doe</h1>
-                    <span class="home__skill anime-text">Web Developer</span>
-                    
-                    <div>
-                        <a href="#" class="home__button anime-text">DOWNLOAD CV</a>
+                    <h1 class="home__pressent anime-text">Hello, Welcome To My Flask App</h1>
+                    <span class="home__pressent2 anime-text">My Name Is</span>
+                    <h1 class="home__title">Daniel Boguslavsky</h1>
+                    <span class="home__skill anime-text">Dev-Ops Specialist</span>
+                    <div class="download_cv">
+                        <a href="ResumeDanielBoguslavsky.pdf" class="home__button anime-text" download>DOWNLOAD CV</a>
                     </div>
                 </div>
 
+
                 <div class="home__img">
-                    <img src="{{ url_for('static', filename='IMG/psycho.jpg') }}" alt="">
-                </div>
-                
-                
-                <div class="home__social">
-                    <ion-icon name="logo-facebook" class="home__social-icon"></ion-icon>
-                    <ion-icon name="logo-instagram" class="home__social-icon"></ion-icon>
-                    <ion-icon name="logo-twitter" class="home__social-icon"></ion-icon>
+                    <img src="{{ url_for('static', filename='IMG/psycho.jpeg') }}" alt="">
                 </div>
 
+                <div class="home__social">
+                    <span class="icon-wrapper">
+                        <ion-icon name="logo-facebook" class="home__social-icon"></ion-icon>
+                    </span>
+                    <span class="icon-wrapper">
+                        <ion-icon name="logo-instagram" class="home__social-icon"></ion-icon>
+                    </span>
+                    <span class="icon-wrapper">
+                        <ion-icon name="logo-twitter" class="home__social-icon"></ion-icon>
+                    </span>
+                </div>
+                
             </div>
         </main>
+
+        <!-- ABOUT -->
+        <section id="about" class="section_about">
+            <div class="about-container bd-grid">
+                <div class="about-grid">
+                    <div class="about__img">
+                        <img src="{{ url_for('static', filename='IMG/computer.jpg') }}" alt="">
+                    </div>
+                    <div class="about__data">
+                        <h2 class="section-title">About Me</h2>
+                        <p class="about__description">
+                            Well hi there! <br>
+                            You probably know my name by now, <br>
+                            But just for the heck of it <br>
+                            My name is Daniel Boguslavsky, I'm a DevOps specialist with X years of experience. I specialize in [add more details here about your skills, experiences, passions, etc.].
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
 
         <!-- GSAP -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.2.4/gsap.min.js"></script>
@@ -70,5 +97,6 @@
     
         <!-- ICONS -->
         <script  type="module" src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons/ionicons.esm.js"></script>
+
     </body>
 </html>

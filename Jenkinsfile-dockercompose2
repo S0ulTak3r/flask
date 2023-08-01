@@ -47,6 +47,8 @@ pipeline
                 script
                 {
                     pipelinefunctions.cleanupWorkspace()
+                    sh "sudo docker image prune --force"
+                    sh "sudo docker container prune --force"
                     dockerfunctions.deleteImageVersion(env.DOCKERPROJECTNAME)
                     dockerfunctions.deleteImageVersion(env.DOCKERDBNAME)
                 }

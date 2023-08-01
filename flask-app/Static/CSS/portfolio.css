@@ -484,11 +484,24 @@ span {
 /* About Section */
 .section_about {
     position: relative; /* Added this line */
-    background-color: #5c6b9c;
+    background-color: var(--white-color);
     border-radius: 45px;
     padding: 20px;
     margin-top: 50vh;
     box-shadow: 0 0 100vh 20px rgba(25, 116, 210, 0.2);
+}
+
+.section_about::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 45px;
+    background-color: black;  /* or another soft color */
+    mix-blend-mode: soft-light;  /* or another blend mode */
+    opacity: 0.5;  /* adjust to desired softness */
 }
 
 .about-grid 
@@ -507,6 +520,11 @@ span {
     margin-left: 20px;
 }
 
+.about__data 
+{
+    color: var(--black-color);
+}
+
 .about__img img
 {
     border-radius: 10%;
@@ -518,7 +536,7 @@ span {
     top: calc(-8rem - 20px); /* Adjust based on the height of your font and desired positioning. Also consider the padding of the parent */
     left: 3%; /* Adjust based on desired positioning */
     white-space: nowrap;
-    color: var(--first-color);
+    color: var(--black-color);
 }
 
 .section-title2 {
@@ -527,7 +545,7 @@ span {
     top: calc(-6rem - 20px); /* Adjust based on the height of your font and desired positioning. Also consider the padding of the parent */
     left: 32.5%; /* Adjust based on desired positioning */
     white-space: nowrap;
-    color: var(--first-color);
+    color: var(--black-color);
 }
 
 

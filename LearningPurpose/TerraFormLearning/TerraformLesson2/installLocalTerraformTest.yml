@@ -1,0 +1,32 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - name: Update all packages
+    command: dnf upgrade -y
+
+  - name: Install Python pip
+    command: dnf install -y python3-pip
+
+  - name: Install Flask
+    pip:
+      name: flask
+      state: present
+      executable: pip3
+
+  - name: Install Docker
+    command: dnf install -y docker
+
+  - name: Install Docker Compose
+    command: pip3 install --ignore-installed requests docker-compose
+
+  - name: Start Docker Service
+    command: systemctl start docker
+
+  - name: Enable Docker Service
+    command: systemctl enable docker
+
+  - name: Add EC2-user to docker Group
+    command: usermod -aG docker ec2-user

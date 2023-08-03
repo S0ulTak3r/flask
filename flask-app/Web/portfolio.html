@@ -5,13 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='CSS/portfolio.css') }}">
         <title>Landing page responsive portfolio</title>
+        <script src="https://kit.fontawesome.com/c4254e24a8.js" crossorigin="anonymous"></script>
     </head>
     <body>
-        <!-- OVERLAY -->
-        <div class="overlay first"></div>
-        <div class="overlay second"></div>
-        <div class="overlay third"></div>
-
         <!-- HEADER -->
         <header class="l-header" id="myHeader">
             <nav class="nav bd-grid">
@@ -35,6 +31,11 @@
 
         <!-- MAIN -->
         <main class="l-main bd-grid">
+            <!-- OVERLAY -->
+            <div class="overlay first"></div>
+            <div class="overlay second"></div>
+            <div class="overlay third"></div>
+
             <div class="home">
                 <div class="home__information">
                     <h1 class="home__pressent anime-text">Hello, Welcome To My Flask App</h1>
@@ -48,7 +49,7 @@
 
 
                 <div class="home__img">
-                    <img src="{{ url_for('static', filename='IMG/psycho.png') }}" alt="">
+                    <img src="psycho.png" alt="">
                 </div>
 
                 <div class="home__social">
@@ -64,39 +65,204 @@
                 </div>
                 
             </div>
-        </main>
 
-        <!-- ABOUT -->
-        <section class="section_about">
-            <div class="about-container bd-grid">
-                <div class="about-grid">
-                    <div class="about__img">
-                        <img src="{{ url_for('static', filename='IMG/computer.jpg') }}" alt="">
-                    </div>
-                    <div class="about__data">
-                        <h2 id="about" class="section-title" >About</h2>
-                        <h3 class="section-title2">Me</h3>
-                        <p class="about__description">
-                            Well hi there! <br><br>
-                            You probably know my name by now, <br>
-                            But just for the heck of it <br>
-                            My name is Daniel Boguslavsky, I'm a DevOps specialist with alot of experience and knowledge in using different tools!<br><br>
-                            I specialize in: <br><br>
-                            - Linux <br>
-                            - Python <br>
-                            - Docker <br>
-                            - Jenkins <br>
-                            - Ansible <br>
-                            - AWS <br>
-                            - Terraform <br>
-                            - Kubernetes <br>
-                            - And more! <br><br>
-                            I'm a very hard worker and I'm always looking to learn new things and improve my skills! <br>
-                        </p>
+
+            <div id="About">
+                <div class="container_about">
+                    <div class="row">
+                        <div class="about-col-1">
+                            <img src="{{ url_for('static', filename='IMG/psycho.png') }}" alt="">
+                        </div>
+                        <div class="about-col-2">
+                            <h1 class="sub-title">About Me</h1>
+                            <p> Greetings! In case we haven't met before, allow me to introduce myself. <br>
+                                I am Daniel Boguslavsky. <br>
+                                I specialize in the realms of DevOps and full-stack development, deftly bridging the gap between applications and their underlying systems.<br>
+                                With a wealth of hands-on experience, I have honed my skills in constructing robust applications and maintaining efficient servers. <br>
+                                More than just being diligent, I am relentlessly passionate, constantly seeking to push boundaries and take on new, stimulating challenges.<br>
+                                In every project, I aim to bring a blend of technical expertise, innovative thinking, and a commitment to excellence. <br>
+                                With the following links, you can view my scope: <br><br> </p>
+                            <div class="tab-titles">
+                                <p class="tab-links active-link" onclick="opentab('Skills')">Skills</p>
+                                <p class="tab-links" onclick="opentab('Experience')">Experience</p>
+                                <p class="tab-links" onclick="opentab('Education')">Education</p>
+                            </div>
+                            <div class="tab-contents active-tab" id="Skills">
+                                <ul>
+                                    <li><span>Programming Language</span><br>Python, Java, Groovy, YAML/YML</li>
+                                    <li><span>Scripting Language</span><br>Bash, PowerShell</li>
+                                    <li><span>Web Development</span><br>HTML, CSS, JavaScript, Flask</li>
+                                    <li><span>App Development</span><br>Android Studio</li>
+                                    <li><span>Dev-Ops</span><br>Linux, Docker, Kubernetes, Jenkins, Ansible, Terraform, AWS, Azure, GCP</li>
+                                    <li><span>AI</span><br>Use of AI Technologies</li>
+                                    <li><span>Monitoring</span><br>Prometheus</li>
+                                </ul>
+                            </div>
+                            <div class="tab-contents" id="Experience">
+                                <ul>
+                                    <li><span>2023 - Current</span><br>Dev-Ops Specialist at A Billion Dollar Company</li>
+                                    <li><span>2020 - 2023</span><br>System & Network Specialist at The IDF</li>
+                                </ul>
+                            </div>
+                            <div class="tab-contents" id="Education">
+                                <ul>
+                                    <li><span>2023 - Current</span><br>Course: Dev-Ops Specialist Student at Sela College</li>
+                                    <li><span>2020 - 2020</span><br>Course: System & Network Administrator at IDF</li>
+                                    <li><span>2017 - 2018</span><br>Course: Intelligent Robotics - MIT</li>
+                                    <li><span>2008 - 2020</span><br>Matriculation Certificate - 12 Years Of Schooling</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
+            
+    
+            <script>
+    
+                var tabLinks = document.getElementsByClassName("tab-links");
+                var tabContents = document.getElementsByClassName("tab-contents");
+                function opentab(tabname)
+                {
+                    for(tabLink of tabLinks)
+                    {
+                        tabLink.classList.remove("active-link");
+                    }
+                    for(tabContent of tabContents)
+                    {
+                        tabContent.classList.remove("active-tab");
+                    }
+                    event.currentTarget.classList.add("active-link");
+                    document.getElementById(tabname).classList.add("active-tab");
+                    
+                }
+            
+            </script>
+            
+            <!---------------------services--------------------->
+            <div id="Services">
+                <div class="container">
+                    <h1 class="sub-title">My Services</h1>
+                    <div class="services-list">
+                        <div class="flip-card">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <i class="fa-solid fa-code"></i>
+                                </div>
+                                <div class="flip-card-back">
+                                    <h2>Web Design</h2>
+                                    <p>Web development is the work involved in developing a Web site for the Internet or an intranet.</p>
+                                    <a href="#">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flip-card">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <i class="fa-solid fa-crop"></i>
+                                </div>
+                                <div class="flip-card-back">
+                                    <h2>UI/UX Design</h2>
+                                    <p>Web development is the work involved in developing a Web site for the Internet or an intranet.</p>
+                                    <a href="#">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flip-card">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <i class="fa-brands fa-app-store-ios"></i>
+                                </div>
+                                <div class="flip-card-back">
+                                    <h2>App Design</h2>
+                                    <p>Web development is the work involved in developing a Web site for the Internet or an intranet.</p>
+                                    <a href="#">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!---------------------Portfolio--------------------->
+            <div id="Portfolio">
+                <div class="container_portfolio">
+                    <h1 class="sub-title">My Work</h1>
+                    <div class="work-list">
+                        <div class="work">
+                            <img src="{{ url_for('static', filename='IMG/computer.jpg') }}">
+                            <div class="layer">
+                                <h3>Social Media App</h3>
+                                <p>The app connects you wiyh talented people around the world</p>
+                                <a href="#"><i class="fa-solid fa-link"></i></a>
+                            </div>
+                        </div>
+                        <div class="work">
+                            <img src="{{ url_for('static', filename='IMG/computer.jpg') }}">
+                            <div class="layer">
+                                <h3>Music App</h3>
+                                <p>The app connects you wiyh talented people around the world</p>
+                                <a href="#"><i class="fa-solid fa-link"></i></a>
+                            </div>
+                        </div>
+                        <div class="work">
+                            <img src="{{ url_for('static', filename='IMG/computer.jpg') }}">
+                            <div class="layer">
+                                <h3>Online Shopping App</h3>
+                                <p>The app connects you wiyh talented people around the world</p>
+                                <a href="#"><i class="fa-solid fa-link"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#" class="btn">See More</a>
+                </div>
+            </div>
+
+            <div id="contact">
+                <div class="container">
+                    <div class="row">
+                    <div class="contact-left">
+                            <h1 class="sub-title">Contact Me</h1>
+                            <p><i class="fa-solid fa-paper-plane"></i>contact@example.com</p>
+                            <p><i class="fa-solid fa-mobile"></i>1234567890</p>
+                            <div class="social-icons">
+                                <a href="https://facebook.com/"><i class="fa-brands fa-linkedin"></i></a>
+                                <a href=""><i class="fa-brands fa-square-twitter"></i></a>
+                                <a href=""><i class="fa-brands fa-instagram"></i></a>
+                                <a href=""><i class="fa-brands fa-facebook"></i></a>
+                            </div>
+                            <a href="../images/Resume.jpg" download class="btn btn2">Download CV</a>
+                        
+                    </div> 
+                    <div class="contact-right">
+                            <form>
+                                <input type="text" name="Name" placeholder="Your Name" required>
+                                <input type="email" name="email" placeholder="Your Email" required>
+                                <textarea name="Message" rows="6" placeholder="Your Message"></textarea>
+                                <button type="submit" class="btn btn2">Submit</button>
+                            </form>
+                    </div> 
+                    </div>
+                </div>
+        </main>
+
+
+        <footer class="l_footer">
+                <div class="copyright">
+                    <p>Created by Daniel Boguslavsky. | &copy; 2023 All rights reserved</p>
+                </div>
+            </div>
+        </footer>
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -105,7 +271,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.2.4/gsap.min.js"></script>
 
         <!-- MAIN -->
-        <script type="text/javascript" src="{{ url_for('static', filename='JS/portfolio.js') }}"></script>
+        <script type="text/javascript" src="portfolio.js"></script>
     
         <!-- ICONS -->
         <script  type="module" src="https://unpkg.com/ionicons@4.5.10-0/dist/ionicons/ionicons.esm.js"></script>

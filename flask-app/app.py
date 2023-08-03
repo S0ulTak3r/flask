@@ -3,9 +3,12 @@ import mysql.connector
 import os
 import random
 import time
+from flask import Flask, render_template, send_from_directory
+from prometheus_flask_exporter import PrometheusMetrics
 
 
 app = Flask(__name__, template_folder='Web', static_folder='Static')
+metrics = PrometheusMetrics(app)
 
 def establish_db_connection():
     while True:
@@ -32,9 +35,20 @@ def intro():
 def second_intro():
     return render_template("second_intro.html")
 
+
+cv_downloads = metrics.counter('cv_downloads', 'Number of CV downloads')
+
 @app.route("/portfolio")
 def portfolio():
     return render_template("portfolio.html")
+
+
+@app.route('/Static/ResumeDanielBoguslavsky.pdf')
+@cv_downloads
+def download_cv():
+    return send_from_directory(directory=app.static_folder, filename='ResumeDanielBoguslavsky.pdf')
+
+
 
 @app.route("/welcome", methods=["GET", "POST"])
 def welcome():

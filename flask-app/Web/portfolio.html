@@ -43,13 +43,13 @@
                     <h1 class="home__title">Daniel Boguslavsky</h1>
                     <span class="home__skill anime-text">Dev-Ops Specialist</span>
                     <div class="download_cv">
-                        <a href="{{ url_for('static', filename='ResumeDanielBoguslavsky.pdf') }}" class="home__button anime-text" download>DOWNLOAD CV</a>
+                        <a href="{{ url_for('download_cv') }}" class="home__button anime-text" download>DOWNLOAD CV</a>
                     </div>
                 </div>
 
 
                 <div class="home__img">
-                    <img src="psycho.png" alt="">
+                    <img src="{{ url_for('static', filename='IMG/psycho.png') }}" alt="">
                 </div>
 
                 <div class="home__social">
@@ -71,7 +71,7 @@
                 <div class="container_about">
                     <div class="row">
                         <div class="about-col-1">
-                            <img src="{{ url_for('static', filename='IMG/psycho.png') }}" alt="">
+                            <img src="{{ url_for('static', filename='IMG/computer.jpg') }}" alt="">
                         </div>
                         <div class="about-col-2">
                             <h1 class="sub-title">About Me</h1>

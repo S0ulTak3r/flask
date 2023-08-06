@@ -43,7 +43,9 @@
                     <h1 class="home__title">Daniel Boguslavsky</h1>
                     <span class="home__skill anime-text">Dev-Ops Specialist</span>
                     <div class="download_cv">
-                        <a href="{{ url_for('download_cv') }}" class="home__button anime-text" download>DOWNLOAD CV</a>
+                        <form action="/portfolio" method="post">
+                            <button type="submit" class="home__button anime-text">DOWNLOAD CV</button>
+                        </form>
                     </div>
                 </div>
 

@@ -1,5 +1,5 @@
-Flask
+flask
 mysql
 mysql-connector-python
-prometheus_flask_exporter
+prometheus_client
 

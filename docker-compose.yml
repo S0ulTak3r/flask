@@ -27,6 +27,10 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command: ["--web.enable-admin-api", "--web.enable-lifecycle", "--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=6h"]
+    environment:
+      - prometheus_multiproc_dir=/tmp
+
 
 volumes:
   db_data:

@@ -1,14 +1,17 @@
 from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, send_from_directory, request, Response
 import mysql.connector
 import os
 import random
 import time
 from flask import Flask, render_template, send_from_directory
-from prometheus_flask_exporter import PrometheusMetrics
-
+from prometheus_client import Counter
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 app = Flask(__name__, template_folder='Web', static_folder='Static')
-metrics = PrometheusMetrics(app)
+
+# Create a Counter
+CV_downloads = Counter('cv_downloads', 'Number of CV downloads')
 
 def establish_db_connection():
     while True:
@@ -35,20 +38,13 @@ def intro():
 def second_intro():
     return render_template("second_intro.html")
 
-
-cv_downloads = metrics.counter('cv_downloads', 'Number of CV downloads')
-
-@app.route("/portfolio")
+@app.route("/portfolio", methods=['GET', 'POST'])
 def portfolio():
+    if request.method == 'POST':
+        # Increment the Counter
+        CV_downloads.inc()
+        return send_from_directory("Static",'ResumeDanielBoguslavsky.pdf')
     return render_template("portfolio.html")
-
-
-@app.route('/Static/ResumeDanielBoguslavsky.pdf')
-@cv_downloads
-def download_cv():
-    return send_from_directory(directory=app.static_folder, filename='ResumeDanielBoguslavsky.pdf')
-
-
 
 @app.route("/welcome", methods=["GET", "POST"])
 def welcome():
@@ -56,10 +52,9 @@ def welcome():
         return redirect(url_for("display_gifs"))
     return render_template("welcome.html")
 
-
 @app.route("/gifs")
 def display_gifs():
-    global db  # ensure you're modifying the glssobal db
+    global db  # ensure you're modifying the global db
     for _ in range(3):  # Try 3 times
         try:
             if db.is_connected() == False: # check if connection is still open
@@ -77,6 +72,9 @@ def display_gifs():
     return "Error accessing the database. Please try again later."
 
 
+@app.route('/metrics')
+def metrics():
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

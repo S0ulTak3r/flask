@@ -1,12 +1,18 @@
-from flask import Flask, render_template, redirect, url_for, request
-from flask import Flask, render_template, send_from_directory, request, Response
+# Flask imports
+from flask import Flask, render_template, redirect, url_for, request, send_from_directory, Response
+
+# Other imports
 import mysql.connector
 import os
 import random
 import time
-from flask import Flask, render_template, send_from_directory
-from prometheus_client import Counter
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+import requests
+import socket
+
+# Prometheus imports
+from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
+
+
 
 app = Flask(__name__, template_folder='Web', static_folder='Static')
 
@@ -41,10 +47,29 @@ def second_intro():
 @app.route("/portfolio", methods=['GET', 'POST'])
 def portfolio():
     if request.method == 'POST':
-        # Increment the Counter
-        CV_downloads.inc()
-        return send_from_directory("Static",'ResumeDanielBoguslavsky.pdf')
+        if 'formDownload' in request.form:
+            CV_downloads.inc()
+            return send_from_directory("Static",'ResumeDanielBoguslavsky.pdf', as_attachment=True)
     return render_template("portfolio.html")
+
+@app.route("/randomApi")
+def randomApi():
+    # Fetch public IP
+    try:
+        ip = requests.get('https://api.ipify.org').text
+    except requests.exceptions.RequestException as e:
+        ip = str(e)
+
+    # Fetch hostname
+    hostname = socket.gethostname()
+
+    # Fetch host IP
+    try:
+        host_ip = socket.gethostbyname(hostname)
+    except socket.gaierror:
+        host_ip = "Unable to get Host IP"
+    return f"My Public IP--{ip}--HostName--{hostname}--HostServer--{host_ip}"
+
 
 @app.route("/welcome", methods=["GET", "POST"])
 def welcome():

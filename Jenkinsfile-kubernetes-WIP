@@ -71,7 +71,7 @@ pipeline
             }
         }
 
-        stage('Clone') 
+        stage('Build (Git Clone, Helm Package)') 
         {
             when 
             {
@@ -85,9 +85,11 @@ pipeline
                 script 
                 {
                     gitfunctions.clonegit(env.GITURL)
+                    helmfunctions.packageHelmChart("./flask", "my-terraform-state-bucket-flaskproject", "helm-packages")
                 }
             }
         }
+
 
         stage('Install Dependencies') 
         {
@@ -222,17 +224,18 @@ pipeline
                     echo 'Making Sure I am in the right context...'
                     k8functions.changeContext("docker-desktop")
 
-                    echo "Deploying application"
-                    k8functions.applyWithFile("./flask/KubernetesFiles/deployment.yml")
-                    k8functions.applyWithFile("./flask/KubernetesFiles/service.yml")
+                    echo "Deploying application using Helm"
+                    def releaseName = "flask-release"
+                    def chartPath = "./flask/mynewchart"  // Adjust path to where your Helm chart is
+                    sh "helm upgrade --install ${releaseName} ${chartPath}"
 
                     echo "pulling tcp port"
-                    def tcpport=sh(script: "kubectl get service flask-service -o=jsonpath='{.spec.ports[*].nodePort}'", returnStdout: true).trim()
+                    def tcpport = sh(script: "kubectl get service flask-service-testing -o=jsonpath='{.spec.ports[*].nodePort}'", returnStdout: true).trim()
                     env.KUBECTLTCPPORT = tcpport
                 }
-
             }
         }
+
 
 
 
@@ -287,11 +290,11 @@ pipeline
                 script
                 {
                     echo "closing test environment..."
-                    k8functions.deleteWithFile("./flask/KubernetesFiles/deployment.yml")
-                    k8functions.deleteWithFile("./flask/KubernetesFiles/service.yml")
+                    k8functions.uninstallHelmRelease("flask-test")
                 }
             }
         }
+
 
 
         stage('Deploying On Google Kubernetes Production')
@@ -307,13 +310,27 @@ pipeline
             {
                 script
                 {
-                    echo "deploying on google kubernetes production..."
+                    echo "Deploying on Google Kubernetes production..."
                     k8functions.changeContext("gke_vernal-tracer-393305_europe-north1-a_cluster-flask2")
-                    k8functions.applyWithFile("./flask/KubernetesFiles/deployment.yml")
-                    k8functions.applyWithFile("./flask/KubernetesFiles/servicedeployment.yml")
+                    
+                    // Define Helm release name and chart path
+                    def releaseName = "flask-prod"
+                    def chartPath = "./flask/mynewchart"
+                    
+                    // Check if Helm release exists
+                    def releaseExists = sh(script: "helm list -q | grep ${releaseName}", returnStatus: true)
+
+                    if (releaseExists == 0) {
+                        // Helm release exists, upgrade it
+                        k8functions.upgradeHelmRelease(releaseName, chartPath)
+                    } else {
+                        // Helm release doesn't exist, install it
+                        k8functions.installHelmRelease(releaseName, chartPath)
+                    }
                 }
             }
         }
+
 
 
         stage('Rollout Restart Production') 

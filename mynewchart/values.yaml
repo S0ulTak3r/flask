@@ -32,3 +32,28 @@ mysql:
     port: 3306
     targetPort: 3306
     type: ClusterIP
+
+prometheus:
+  server:
+    config:
+      global:
+        scrape_interval: 15s
+      scrape_configs:
+        - job_name: 'flask'
+          static_configs:
+            - targets: ['flask-service-testing:80']
+          metrics_path: '/metrics'
+    podSecurityPolicy:
+      enabled: false
+    service:
+      type: NodePort
+
+grafana:
+  adminUser: admin
+  adminPassword: secret
+  podSecurityPolicy:
+    enabled: false
+  service:
+    type: NodePort
+  
+

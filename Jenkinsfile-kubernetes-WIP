@@ -126,7 +126,7 @@ pipeline
 
                         // Check if the GKE cluster exists
                         try {
-                            def clusterStatus = sh(script: "gcloud container clusters describe cluster-flask2 --region europe-north1 --format='get(status)'", returnStdout: true).trim()
+                            def clusterStatus = sh(script: "gcloud container clusters describe cluster-flask2 --region me-west1 --format='get(status)'", returnStdout: true).trim()
                             // If the command didn't throw an error, then the cluster exists
                             clusterExists = true
                         } catch(Exception e) {
@@ -145,7 +145,7 @@ pipeline
 
                         // Update the kubectl context
                         echo 'Updating kubectl context...'
-                        sh 'gcloud container clusters get-credentials cluster-flask2 --zone europe-north1-a --project vernal-tracer-393305'
+                        sh 'gcloud container clusters get-credentials cluster-flask2 --zone me-west1-a --project vernal-tracer-393305'
                     }
                 }
             }
@@ -311,7 +311,7 @@ pipeline
                 script
                 {
                     echo "Deploying on Google Kubernetes production..."
-                    k8functions.changeContext("gke_vernal-tracer-393305_europe-north1-a_cluster-flask2")
+                    k8functions.changeContext("gke_vernal-tracer-393305_me-west1-a_cluster-flask2")
                     
                     // Define Helm release name and chart path
                     def releaseName = "flask-prod"

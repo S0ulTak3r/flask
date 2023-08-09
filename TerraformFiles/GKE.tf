@@ -12,7 +12,7 @@ terraform {
 
 provider "google" {
   project     = "vernal-tracer-393305"
-  region      = "europe-north1"
+  region      = "me-west1"
 }
 
 resource "google_compute_network" "vpc_network" {
@@ -24,10 +24,9 @@ resource "google_compute_network" "vpc_network" {
   }
 }
 
-
 resource "google_container_cluster" "primary" {
   name     = "cluster-flask2"
-  location = "europe-north1-a"  # Set the location to europe-north1-a
+  location = "me-west1-a"  # Set the location to me-west1-a
 
   remove_default_node_pool = true
   initial_node_count = 1
@@ -43,14 +42,14 @@ resource "google_container_cluster" "primary" {
 
 resource "google_container_node_pool" "primary" {
   name       = "default-pool"
-  location   = "europe-north1-a"  # Set the location to europe-north1-a
+  location   = "me-west1-a"  # Set the location to me-west1-a
   cluster    = google_container_cluster.primary.name
   node_count = 1
 
   node_config {
     preemptible  = false
     machine_type = "g1-small"
-    disk_size_gb = 80
+    disk_size_gb = 30  # Reduced to 30 GB
     image_type = "COS_CONTAINERD"
 
     metadata = {

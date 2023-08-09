@@ -46,7 +46,6 @@ resource "google_container_node_pool" "primary" {
   location   = "europe-north1-a"  # Set the location to europe-north1-a
   cluster    = google_container_cluster.primary.name
   node_count = 1
-  max_pods_per_node = 110  # <-- Here's the attribute to set the max number of pods
 
   node_config {
     preemptible  = false

@@ -53,44 +53,37 @@ resource "google_compute_network" "vpc_network" {
   }
 }
 
-# GKE Cluster Configuration
+# GKE Cluster Configuration with default node pool
 resource "google_container_cluster" "primary" {
-  name                     = "cluster-flask2"
-  location                 = var.zone
-  remove_default_node_pool = true
-  initial_node_count       = 1
+  name       = "cluster-flask2"
+  location   = var.zone
+  network    = google_compute_network.vpc_network.name
+  node_pool {
+    name       = "default-pool"
+    node_count = 1
+
+    node_config {
+      preemptible  = false
+      machine_type = "e2-small"
+      disk_size_gb = 30
+      image_type   = "COS_CONTAINERD"
+
+      metadata = {
+        disable-legacy-endpoints = "true"
+      }
+
+      oauth_scopes = local.oauth_scopes
+    }
+
+    management {
+      auto_repair  = true
+      auto_upgrade = true
+    }
+  }
 
   master_auth {
     client_certificate_config {
       issue_client_certificate = false
     }
-  }
-
-  network = google_compute_network.vpc_network.name
-}
-
-# GKE Node Pool Configuration
-resource "google_container_node_pool" "primary" {
-  name       = "default-pool"
-  location   = var.zone
-  cluster    = google_container_cluster.primary.name
-  node_count = 1
-
-  node_config {
-    preemptible  = false
-    machine_type = "g1-small"
-    disk_size_gb = 30
-    image_type   = "COS_CONTAINERD"
-
-    metadata = {
-      disable-legacy-endpoints = "true"
-    }
-
-    oauth_scopes = local.oauth_scopes
-  }
-
-  management {
-    auto_repair  = true
-    auto_upgrade = true
   }
 }

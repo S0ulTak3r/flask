@@ -30,7 +30,22 @@ services:
     command: ["--web.enable-admin-api", "--web.enable-lifecycle", "--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=6h"]
     environment:
       - prometheus_multiproc_dir=/tmp
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=secret
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: always
+    depends_on:
+      - prometheus
+
 
 
 volumes:
   db_data:
+  grafana_data:
+

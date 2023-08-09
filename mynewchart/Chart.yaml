@@ -1,0 +1,4 @@
+apiVersion: v2
+name: myproject
+version: 0.1.0
+description: Helm chart for my project with Flask, MySQL, Prometheus, and Grafana

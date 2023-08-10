@@ -297,39 +297,36 @@ pipeline
 
 
 
-        stage('Deploying On Google Kubernetes Production')
+        stage('Deploying On Google Kubernetes Production') 
         {
-            when
-            {
-                expression
-                {
+            when {
+                expression {
                     return env.NO_CHANGES != "true"
                 }
             }
-            steps
-            {
-                script
-                {
+            steps {
+                script {
                     echo "Deploying on Google Kubernetes production..."
                     k8functions.changeContext("gke_vernal-tracer-393305_me-west1-a_cluster-flask2")
                     
-                    // Define Helm release name and chart path
-                    def releaseName = "flask-prod"
-                    def chartPath = "./flask/mynewchart"
-                    
+                    // Extract the name of the latest Helm package from the current directory
+                    def chartPackagePath = sh(script: "ls ./flask/myproject*.tgz | sort -V | tail -n 1", returnStdout: true).trim()
+
                     // Check if Helm release exists
+                    def releaseName = "flask-prod"
                     def releaseExists = sh(script: "helm list -q | grep ${releaseName}", returnStatus: true)
 
                     if (releaseExists == 0) {
                         // Helm release exists, upgrade it
-                        k8functions.upgradeHelmRelease(releaseName, chartPath)
+                        sh "helm upgrade ${releaseName} ${chartPackagePath}"
                     } else {
                         // Helm release doesn't exist, install it
-                        k8functions.installHelmRelease(releaseName, chartPath)
+                        sh "helm install ${releaseName} ${chartPackagePath}"
                     }
                 }
             }
         }
+
 
 
 

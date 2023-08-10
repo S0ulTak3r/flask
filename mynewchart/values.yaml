@@ -20,6 +20,7 @@ flask:
       targetPort: 5000
       type: LoadBalancer
 
+
 mysql:
   replicaCount: 1
   image:
@@ -55,5 +56,13 @@ grafana:
     enabled: false
   service:
     type: NodePort
+  persistence:
+    enabled: true
+    size: 5Gi
+    accessModes:
+      - ReadWriteOnce
+    name: grafana-pvc
+
+
   
 

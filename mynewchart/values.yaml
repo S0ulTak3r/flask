@@ -1,53 +1,57 @@
-# Configuration values for Flask application
+# Flask Application Configuration
 flask:
-  # Number of replicas for Flask deployment
+  # Flask Deployment Configurations
   replicaCount: 1
   image:
     repository: s0ultak3r/dockerflask
     tag: latest
+  
+  # Environment Variables for Flask
   environment:
-    # MySQL configurations for Flask to connect to
     MYSQL_PASSWORD: password
     MYSQL_USER: root
     MYSQL_HOST: db
     MYSQL_DATABASE: flask_db
+  
+  # Service Configurations
   service:
-    # Flask service configuration for testing environment
     testing:
       name: flask-service-testing
       port: 80
       targetPort: 5000
       type: NodePort
-    # Flask service configuration for production environment
     production:
       name: flask-service-production
       port: 80
       targetPort: 5000
       type: LoadBalancer
 
-# Configuration values for MySQL database
+# MySQL Database Configuration
 mysql:
   replicaCount: 1
   image:
     repository: s0ultak3r/dockerdb
     tag: latest
+  
+  # MySQL Environment Variables
   environment:
-    # Root password for MySQL database
     MYSQL_ROOT_PASSWORD: password
+  
+  # MySQL Service Configuration
   service:
     name: db
     port: 3306
     targetPort: 3306
     type: ClusterIP
 
-# Configuration values for Prometheus monitoring
+# Prometheus Monitoring Configuration
 prometheus:
   server:
     config:
       global:
         scrape_interval: 15s
+      # Flask Metrics Scrape Configuration
       scrape_configs:
-        # Scrape configuration for Flask metrics
         - job_name: 'flask'
           static_configs:
             - targets: ['flask-service-testing:80']
@@ -57,16 +61,17 @@ prometheus:
     service:
       type: NodePort
 
-# Configuration values for Grafana visualization
+# Grafana Visualization Configuration
 grafana:
-  # Admin user configurations
+  # Grafana Admin Credentials
   adminUser: admin
   adminPassword: secret
   podSecurityPolicy:
     enabled: false
   service:
     type: NodePort
-  # Persistence configurations for Grafana to store dashboards, configuration, etc.
+  
+  # Grafana Persistence Configuration
   persistence:
     enabled: true
     size: 5Gi

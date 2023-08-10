@@ -6,8 +6,13 @@ if [[ "$1" != "major" && "$1" != "minor" && "$1" != "patch" ]]; then
     exit 1
 fi
 
+
+# Path to the Chart.yaml file, relative to the Jenkins workspace
+CHART_PATH="./flask/mynewchart/Chart.yaml"
+
+
 # Get current version from Chart.yaml
-CURRENT_VERSION=$(awk '/name: myproject/{getline; print $2}' ../mynewchart/Chart.yaml)
+CURRENT_VERSION=$(awk '/name: myproject/{getline; print $2}' "$CHART_PATH")
 echo "Current Version: $CURRENT_VERSION" # Debugging line
 
 # Split into array

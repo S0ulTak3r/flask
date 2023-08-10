@@ -1,19 +1,19 @@
-# Flask App Configuration (Where the magic happens 🎩)
+# Flask Application Configuration
 flask:
-  # How many flask replicas to party with? 🍻
+  # Number of replicas for the Flask deployment
   replicaCount: 1
   image:
     repository: s0ultak3r/dockerflask
     tag: latest
   
-  # Flask's secret ingredients 🍲
+  # Environment variables for Flask application
   environment:
     MYSQL_PASSWORD: password
     MYSQL_USER: root
     MYSQL_HOST: db
     MYSQL_DATABASE: flask_db
   
-  # Flask's VIP door policy 🚪
+  # Service configuration for Flask
   service:
     testing:
       name: flask-service-testing
@@ -26,31 +26,31 @@ flask:
       targetPort: 5000
       type: LoadBalancer
 
-# MySQL's Crib (Where data parties hard! 🎉)
+# MySQL Database Configuration
 mysql:
   replicaCount: 1
   image:
     repository: s0ultak3r/dockerdb
     tag: latest
   
-  # MySQL's secret handshake 🤝
+  # Environment variables for MySQL
   environment:
     MYSQL_ROOT_PASSWORD: password
   
-  # MySQL's private lounge 🛋️
+  # Service configuration for MySQL
   service:
     name: db
     port: 3306
     targetPort: 3306
     type: ClusterIP
 
-# Prometheus: The Party Watchdog! 🐶
+# Prometheus Monitoring Configuration
 prometheus:
   server:
     config:
       global:
         scrape_interval: 15s
-      # Flask's dance moves tracker 💃
+      # Scrape configuration for Flask metrics
       scrape_configs:
         - job_name: 'flask'
           static_configs:
@@ -61,9 +61,9 @@ prometheus:
     service:
       type: NodePort
 
-# Grafana's Art Gallery (Visuals that dazzle! 🎨)
+# Grafana Visualization Configuration
 grafana:
-  # Grafana's secret diary keys 🗝️
+  # Admin credentials for Grafana
   adminUser: admin
   adminPassword: secret
   podSecurityPolicy:
@@ -71,7 +71,7 @@ grafana:
   service:
     type: NodePort
   
-  # Grafana's treasure chest (Guarded by a dragon! 🐉)
+  # Persistence configurations for Grafana
   persistence:
     enabled: true
     size: 5Gi

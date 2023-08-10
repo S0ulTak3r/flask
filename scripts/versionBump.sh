@@ -6,10 +6,8 @@ if [[ "$1" != "major" && "$1" != "minor" && "$1" != "patch" ]]; then
     exit 1
 fi
 
-
 # Path to the Chart.yaml file, relative to the Jenkins workspace
 CHART_PATH="./flask/mynewchart/Chart.yaml"
-
 
 # Get current version from Chart.yaml
 CURRENT_VERSION=$(awk '/name: myproject/{getline; print $2}' "$CHART_PATH")
@@ -35,6 +33,6 @@ case $1 in
 esac
 
 # Replace in Chart.yaml
-sed -i "/name: myproject/{n; s/version: $CURRENT_VERSION/version: $NEW_VERSION/;}" ../mynewchart/Chart.yaml
+sed -i "/name: myproject/{n; s/version: $CURRENT_VERSION/version: $NEW_VERSION/;}" "$CHART_PATH"
 
 echo "Version bumped to $NEW_VERSION"

@@ -61,7 +61,7 @@ prometheus:
     service:
       type: NodePort
 
-# Grafana Visualization Configuration
+# Grafana Visualization Configurationssssssssss
 grafana:
   # Admin credentials for Grafana
   adminUser: admin

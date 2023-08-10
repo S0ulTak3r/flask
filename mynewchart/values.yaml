@@ -1,32 +1,38 @@
+# Configuration values for Flask application
 flask:
+  # Number of replicas for Flask deployment
   replicaCount: 1
   image:
     repository: s0ultak3r/dockerflask
     tag: latest
   environment:
+    # MySQL configurations for Flask to connect to
     MYSQL_PASSWORD: password
     MYSQL_USER: root
     MYSQL_HOST: db
     MYSQL_DATABASE: flask_db
   service:
+    # Flask service configuration for testing environment
     testing:
       name: flask-service-testing
       port: 80
       targetPort: 5000
       type: NodePort
+    # Flask service configuration for production environment
     production:
       name: flask-service-production
       port: 80
       targetPort: 5000
       type: LoadBalancer
 
-
+# Configuration values for MySQL database
 mysql:
   replicaCount: 1
   image:
     repository: s0ultak3r/dockerdb
     tag: latest
   environment:
+    # Root password for MySQL database
     MYSQL_ROOT_PASSWORD: password
   service:
     name: db
@@ -34,12 +40,14 @@ mysql:
     targetPort: 3306
     type: ClusterIP
 
+# Configuration values for Prometheus monitoring
 prometheus:
   server:
     config:
       global:
         scrape_interval: 15s
       scrape_configs:
+        # Scrape configuration for Flask metrics
         - job_name: 'flask'
           static_configs:
             - targets: ['flask-service-testing:80']
@@ -49,20 +57,19 @@ prometheus:
     service:
       type: NodePort
 
+# Configuration values for Grafana visualization
 grafana:
+  # Admin user configurations
   adminUser: admin
   adminPassword: secret
   podSecurityPolicy:
     enabled: false
   service:
     type: NodePort
+  # Persistence configurations for Grafana to store dashboards, configuration, etc.
   persistence:
     enabled: true
     size: 5Gi
     accessModes:
       - ReadWriteOnce
     name: grafana-pvc
-
-
-  
-

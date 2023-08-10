@@ -290,7 +290,7 @@ pipeline
                 script
                 {
                     echo "closing test environment..."
-                    k8functions.uninstallHelmRelease("flask-test")
+                    k8functions.uninstallHelmRelease("flask-release")
                 }
             }
         }

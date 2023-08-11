@@ -52,7 +52,6 @@ pipeline
                     dockerfunctions.deleteImageVersion(env.DOCKERPROJECTNAME)
                     dockerfunctions.deleteImageVersion(env.DOCKERDBNAME)
                 }
-
             }
         }
         

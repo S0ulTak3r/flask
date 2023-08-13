@@ -85,6 +85,8 @@ pipeline
                 script 
                 {
                     gitfunctions.clonegit(env.GITURL)
+                    sh "aws s3 cp s3://daniel-sela/unity-build.zip unity-build.zip"
+                    sh "unzip unity-build.zip -d ./flask/flask-app/Static/"
                     helmfunctions.packageHelmChart("./flask", "my-terraform-state-bucket-flaskproject", "helm-packages")
                 }
             }

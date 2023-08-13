@@ -197,6 +197,10 @@ pipeline
                 script
                 {
                     scpfunctions.TransferFile(env.publicTestIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
+                    echo "Current Directory:"
+                    sh "pwd"
+                    echo "Listing Directory Contents:"
+                    sh "ls -la"
                     scpfunctions.TransferFile(env.publicTestIp,"./flask/prometheus.yml",env.SSHKEYLOCATION)
                     scpfunctions.TransferFile(env.publicProdIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
                     scpfunctions.TransferFile(env.publicProdIp,"./flask/prometheus.yml",env.SSHKEYLOCATION)

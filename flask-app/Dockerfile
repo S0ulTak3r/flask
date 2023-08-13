@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
 # Copy all the files to the container
 COPY . .
 
+COPY ./Static/UnityBuild /usr/src/app/Static/UnityBuild
+
 # Install dependencies
 RUN pip install --no-cache-dir --default-timeout=1000 -r requirements.txt
 

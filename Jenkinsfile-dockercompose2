@@ -197,9 +197,9 @@ pipeline
                 script
                 {
                     scpfunctions.TransferFile(env.publicTestIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
-                    scpfunctions.TransferFile(env.publicTestIp,"./flask/prometheus.yml",env.SSHKEYLOCATION)
+                    scpfunctions.TransferFile(env.publicTestIp,"./flask/prometheusconfig.yml",env.SSHKEYLOCATION)
                     scpfunctions.TransferFile(env.publicProdIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
-                    scpfunctions.TransferFile(env.publicProdIp,"./flask/prometheus.yml",env.SSHKEYLOCATION)
+                    scpfunctions.TransferFile(env.publicProdIp,"./flask/prometheusconfig.yml",env.SSHKEYLOCATION)
                 }
             }
         }

@@ -87,3 +87,24 @@ resource "google_container_cluster" "primary" {
     }
   }
 }
+
+# Firewall Rule for NodePort Range
+resource "google_compute_firewall" "gke_nodeport_rule" {
+  name    = "allow-gke-nodeport"
+  network = google_compute_network.vpc_network.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["30000-32767"]
+  }
+
+  allow {
+    protocol = "udp"
+    ports    = ["30000-32767"]
+  }
+
+  # Apply the rule to all instances in the network
+  source_ranges = ["0.0.0.0/0"]
+
+  depends_on = [google_container_cluster.primary]
+}

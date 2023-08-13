@@ -69,6 +69,8 @@ pipeline
                 script
                 {
                     gitfunctions.clonegit(env.GITURL)
+                    aws s3 cp s3://daniel-sela/unity-build.zip unity-build.zip
+                    unzip unity-build.zip -d ./flask/flask-app/Static/
                 }
             }
         }
@@ -195,7 +197,9 @@ pipeline
                 script
                 {
                     scpfunctions.TransferFile(env.publicTestIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
+                    scpfunctions.TransferFile(env.publicTestIp,"./flask/prometheus.yml",env.SSHKEYLOCATION)
                     scpfunctions.TransferFile(env.publicProdIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
+                    scpfunctions.TransferFile(env.publicProdIp,"./flask/prometheus.yml",env.SSHKEYLOCATION)
                 }
             }
         }

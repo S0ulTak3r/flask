@@ -97,6 +97,13 @@ def display_gifs():
     return "Error accessing the database. Please try again later."
 
 
+
+@app.route('/playgame')
+def playgame():
+    return send_from_directory('Static/UnityBuild', 'index.html')
+
+
+
 @app.route('/metrics')
 def metrics():
     return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)

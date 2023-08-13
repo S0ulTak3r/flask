@@ -1,5 +1,5 @@
-# .gitignore
 .terraform
 *.tfstate*
 *.terraform.lock.hcl*
+flask-app/Static/UnityBuild/
 pipelineFunctions/

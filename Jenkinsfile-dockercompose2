@@ -69,8 +69,8 @@ pipeline
                 script
                 {
                     gitfunctions.clonegit(env.GITURL)
-                    aws s3 cp s3://daniel-sela/unity-build.zip unity-build.zip
-                    unzip unity-build.zip -d ./flask/flask-app/Static/
+                    sh "aws s3 cp s3://daniel-sela/unity-build.zip unity-build.zip"
+                    sh "unzip unity-build.zip -d ./flask/flask-app/Static/"
                 }
             }
         }

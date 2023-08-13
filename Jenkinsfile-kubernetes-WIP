@@ -208,37 +208,38 @@ pipeline
 
 
 
-        stage('Deployment To Testing Enviornment') 
-        {
-            when 
-            {
-                expression 
-                {
+        stage('Deployment To Testing Environment') {
+            when {
+                expression {
                     return env.NO_CHANGES != "true"
                 }
             }
-            steps 
-            {
-                script
-                {
-                    echo 'Making Sure I am in the right context...'
+            steps {
+                echo 'Making Sure I am in the right context...'
+                script {
                     k8functions.changeContext("docker-desktop")
+                }
+                
+                echo "Fetching the latest chart version..."
+                script {
+                    def latestChart = sh(script: "ls ./flask/myproject*.tgz | sort -V | tail -n 1", returnStdout: true).trim()
+                    env.LATEST_CHART_PATH = latestChart
+                }
 
-                    echo "Deploying application using Helm"
+                echo "Deploying application using Helm..."
+                script {
                     def releaseName = "flask-release"
-                    
-                    // Get the latest version of the packaged chart
-                    def latestChart = sh("ls ./flask/myproject*.tgz | sort -V | tail -n 1", returnStdout: true).trim()
+                    sh "helm upgrade --install ${releaseName} ${env.LATEST_CHART_PATH}"
+                }
 
-                    
-                    sh "helm upgrade --install ${releaseName} ${latestChart}"
-
-                    echo "pulling tcp port"
-                    def tcpport = sh("kubectl get service flask-service-testing -o=jsonpath='{.spec.ports[*].nodePort}'", returnStdout: true).trim()
+                echo "Retrieving TCP port..."
+                script {
+                    def tcpport = sh(script: "kubectl get service flask-service-testing -o=jsonpath='{.spec.ports[*].nodePort}'", returnStdout: true).trim()
                     env.KUBECTLTCPPORT = tcpport
                 }
             }
         }
+
 
 
 

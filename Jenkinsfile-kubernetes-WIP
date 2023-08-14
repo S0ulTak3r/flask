@@ -71,7 +71,7 @@ pipeline
             }
         }
 
-        stage('Build (Git Clone, Helm Package)') 
+        stage('Build(Git Clone, Helm Package)') 
         {
             when 
             {

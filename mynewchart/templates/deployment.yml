@@ -53,7 +53,7 @@ spec:
               value: {{ .Values.mysql.environment.MYSQL_ROOT_PASSWORD }}
           volumeMounts:
             - name: mysql-pvc-name
-              mountPath: /var/lib/mysql
+              mountPath: /var/lib/mysql-data
       volumes:
         - name: mysql-pvc-name
           persistentVolumeClaim:

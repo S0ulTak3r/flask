@@ -167,7 +167,7 @@ pipeline
             {
                 script 
                 {
-                    dockerfunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
+                    dockerfunctions.BuildCheckAndPushV2(env.DOCKERPROJECTNAME, "./flask/flask-app/")
                 }
             }
         }
@@ -185,7 +185,7 @@ pipeline
             {
                 script 
                 {
-                    dockerfunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
+                    dockerfunctions.BuildCheckAndPush(env.DOCKERDBNAME, "./flask/mysql/")
                 }
             }
         }

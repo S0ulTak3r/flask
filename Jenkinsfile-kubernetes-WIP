@@ -98,11 +98,14 @@ pipeline {
         }
 
         // Provision or update the cloud infrastructure using Terraform
-        stage('Prepare GKE Cluster') {
-            steps {
-                script {
+        stage('Prepare GKE Cluster') 
+        {
+            steps 
+            {
+                script 
+                {
                     // Use Terraform to provision or update the Google Kubernetes Engine (GKE) cluster
-                    terraformApply("./flask/TerraformFiles","cluster-flask2","me-west1-a","vernal-tracer-393305")
+                    terraformfunctions.terraformApply("./flask/TerraformFiles","cluster-flask2","me-west1-a","vernal-tracer-393305")
                 }
             }
         }

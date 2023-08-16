@@ -1,30 +1,42 @@
 @Library('FunctionsLibrary') _
 
-pipeline {
+// Define a helper function at the top of your Jenkinsfile
+def shouldRunStage() 
+{
+    return env.NO_CHANGES != "true"
+}
+
+pipeline 
+{
     agent any
 
-    environment {
+    environment 
+    {
         // Define environment variables that will be used throughout the pipeline
-        SSHKEYLOCATION = "/var/lib/jenkins/.ssh/Daniel.pem"
-        DOCKERPROJECTNAME = "s0ultak3r/dockerflask"
-        DOCKERDBNAME = "s0ultak3r/dockerdb"
-        ANSIBLEFOLDER = "/var/lib/jenkins/AnsibleFiles/Daniel-B-AutoAnsible"
-        GITURL = "git@github.com:S0ulTak3r/flask.git"
-        REQLOCATION = "./flask/flask-app/requirements.txt"
+        SSHKEYLOCATION = "${params.SSHKEYLOCATION}"
+        DOCKERFLASKNAME = "${params.DOCKERFLASKNAME}"
+        DOCKERDBNAME = "${params.DOCKERDBNAME}"
+        ANSIBLEFOLDER = "${params.ANSIBLEFOLDER}"
+        GITURL = "${params.GITURL}"
+        REQLOCATION = "${params.REQLOCATION}"
         GIT_SSH_COMMAND = "ssh -o StrictHostKeyChecking=no"
-        WINDOWSIP="192.168.56.1"
+        WINDOWSIP= "${params.WINDOWSIP}"
     }
 
-    triggers {
+    triggers 
+    {
         // Poll the Source Code Management system every minute
         pollSCM('*/1 * * * *')
     }
 
     stages {
         // Initialize a proxy for subsequent operations
-        stage('start proxy') {
-            steps {
-                script {
+        stage('start proxy') 
+        {
+            steps 
+            {
+                script 
+                {
                     // Initialize the proxy on a remote machine to enable secure communication
                     k8functions.startProxyRemote(env.WINDOWSIP)
                 }
@@ -32,9 +44,12 @@ pipeline {
         }
 
         // Check if there are any changes in the source code repository since the last run
-        stage('Changes Check') {
-            steps {
-                script {
+        stage('Changes Check') 
+        {
+            steps 
+            {
+                script 
+                {
                     // Determine if there have been any changes to the repository. If not, set the NO_CHANGES environment variable to true
                     pipelinefunctions.checkChanges()
                 }
@@ -42,13 +57,17 @@ pipeline {
         }
 
         // Clean up the workspace to ensure a fresh environment for this run, and remove outdated docker images
-        stage('Cleanup') {
-            when {
+        stage('Cleanup') 
+        {
+            when 
+            {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
                     // Clean up the Jenkins workspace to remove any old data or artifacts
                     pipelinefunctions.cleanupWorkspace()
                     
@@ -60,13 +79,17 @@ pipeline {
         }
 
         // Clone the latest code from the repository, download the latest Unity build, and package the application into a Helm chart
-        stage('Build(Git Clone, Helm Package)') {
-            when {
+        stage('Build(Git Clone, Helm Package)') 
+        {
+            when 
+            {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
                     // Clone the latest version of the source code from the git repository
                     gitfunctions.clonegit(env.GITURL)
                     
@@ -84,13 +107,17 @@ pipeline {
         }
 
         // Install required dependencies for the project
-        stage('Install Dependencies') {
-            when {
+        stage('Install Dependencies') 
+        {
+            when 
+            {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
                     // Install system-level dependencies required for the project using Ansible
                     ansiblefunctions.installDependenciesSystemLvl(env.ANSIBLEFOLDER,"installLocal.yml")
                 }
@@ -100,6 +127,11 @@ pipeline {
         // Provision or update the cloud infrastructure using Terraform
         stage('Prepare GKE Cluster') 
         {
+            when
+            {
+                // Only run this stage if there have been changes to the repository
+                expression { return shouldRunStage() }
+            }
             steps 
             {
                 script 
@@ -111,13 +143,17 @@ pipeline {
         }
 
         // Log in to DockerHub to enable pushing of Docker images
-        stage('Docker Login') {
-            when {
+        stage('Docker Login') 
+        {
+            when 
+            {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
                     // Authenticate with DockerHub using stored Jenkins credentials to enable pushing of Docker images
                     dockerfunctions.loginDockerHub()
                 }
@@ -125,13 +161,17 @@ pipeline {
         }
 
         // Build Docker images for the Flask application and the database, and push them to DockerHub
-        stage('Parallel Docker Build and Push') {
-            when {
+        stage('Parallel Docker Build and Push') 
+        {
+            when 
+            {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
                     // Build Docker images for the Flask application and the database in parallel to save time
                     // If there are relevant changes detected in the source code, the images will also be pushed to DockerHub
                     parallel(
@@ -147,12 +187,15 @@ pipeline {
         }
 
         // Deploy the application to a testing environment using Helm
-        stage('Deployment To Testing Environment') {
-            when {
+        stage('Deployment To Testing Environment') 
+        {
+            when 
+            {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
-            steps {
+            steps 
+            {
                 script 
                 {
                     // Deploy the application to a Kubernetes testing environment using Helm, targeting a specific environment (e.g., "Testing")
@@ -165,13 +208,17 @@ pipeline {
         }
 
         // Restart the Kubernetes deployments to ensure they are using the latest Docker images
-        stage('Rollout Restart') {
-            when {
+        stage('Rollout Restart') 
+        {
+            when 
+            {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
                     // Perform a rollout restart on the Flask and MySQL deployments to ensure they pick up the latest Docker images
                     k8functions.rollout("deployment/flask-deployment")
                     k8functions.rollout("deployment/mysql-deployment")
@@ -180,13 +227,17 @@ pipeline {
         }
 
         // Test the application in the testing environment to ensure it is working correctly
-        stage('Testing Test Environment') {
-            when {
+        stage('Testing Test Environment') 
+        {
+            when 
+            {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
                     // Test the Flask application in the testing environment using a simple curl command to ensure it responds correctly
                     testingfunctions.curlTest(env.WINDOWSIP,env.KUBECTLTCPPORT)
                 }
@@ -194,13 +245,17 @@ pipeline {
         }
 
         // Shut down the testing environment now that testing is complete
-        stage('Closing Testing Environment') {
-            when {
+        stage('Closing Testing Environment') 
+        {
+            when 
+            {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
                     // Uninstall the Helm release for the Flask application in the testing environment, effectively shutting it down
                     k8functions.uninstallHelmRelease("flask-test")
                 }
@@ -208,13 +263,17 @@ pipeline {
         }
 
         // Deploy the application to a production environment using Helm
-        stage('Deploying On Google Kubernetes Production') {
-            when {
+        stage('Deploying On Google Kubernetes Production') 
+        {
+            when 
+            {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
                     // Deploy the application to a Kubernetes production environment using Helm, targeting a specific environment (e.g., "Production")
                     helmfunctions.deployToK8s("gke_vernal-tracer-393305_me-west1-a_cluster-flask2","myproject","./flask","Production","flask-prod")
                     
@@ -225,13 +284,17 @@ pipeline {
         }
 
         // Restart the Kubernetes deployments in the production environment to ensure they are using the latest Docker images
-        stage('Rollout Restart Production') {
-            when {
+        stage('Rollout Restart Production') 
+        {
+            when 
+            {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
                     // Perform a rollout restart on the Flask and MySQL deployments in the production environment to ensure they pick up the latest Docker images
                     k8functions.rollout("deployment/flask-deployment")
                     k8functions.rollout("deployment/mysql-deployment")
@@ -241,13 +304,17 @@ pipeline {
         }
 
         // Shut down the proxy that was started at the beginning of the pipeline
-        stage('closing proxy') {
-            when {
+        stage('closing proxy') 
+        {
+            when 
+            {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
                     // Close the proxy on the remote machine to clean up and finalize the pipeline
                     k8functions.closeProxyRemote(env.WINDOWSIP)
                 }

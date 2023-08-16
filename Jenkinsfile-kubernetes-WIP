@@ -153,10 +153,11 @@ pipeline {
                 expression { return env.NO_CHANGES != "true" }
             }
             steps {
-                script {
+                script 
+                {
                     // Deploy the application to a Kubernetes testing environment using Helm, targeting a specific environment (e.g., "Testing")
                     helmfunctions.deployToK8s("docker-desktop","myproject","./flask","Testing","flask-test")
-                    
+
                     // Retrieve the TCP port on which the Flask application is accessible in the testing environment
                     k8functions.getTcpPort("flask-service-testing")
                 }

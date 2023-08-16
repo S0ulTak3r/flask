@@ -1,11 +1,10 @@
 @Library('FunctionsLibrary') _
 
-pipeline
-{
+pipeline {
     agent any
 
-    environment 
-    {
+    environment {
+        // Define environment variables that will be used throughout the pipeline
         SSHKEYLOCATION = "/var/lib/jenkins/.ssh/Daniel.pem"
         DOCKERPROJECTNAME = "s0ultak3r/dockerflask"
         DOCKERDBNAME = "s0ultak3r/dockerdb"
@@ -14,327 +13,222 @@ pipeline
         REQLOCATION = "./flask/flask-app/requirements.txt"
         GIT_SSH_COMMAND = "ssh -o StrictHostKeyChecking=no"
         WINDOWSIP="192.168.56.1"
-
     }
 
-    triggers 
-    {
+    triggers {
+        // Poll the Source Code Management system every minute
         pollSCM('*/1 * * * *')
     }
 
-    stages 
-    {
-
-
-
-
-
-        // This stage starts the proxy
-        stage('start proxy')
-        {
-            steps
-            {
-                script
-                {
+    stages {
+        // Initialize a proxy for subsequent operations
+        stage('start proxy') {
+            steps {
+                script {
+                    // Initialize the proxy on a remote machine to enable secure communication
                     k8functions.startProxyRemote(env.WINDOWSIP)
                 }
             }
         }
 
-        // This stage checks for changes in the repository
-        stage('Changes Check') 
-        {
+        // Check if there are any changes in the source code repository since the last run
+        stage('Changes Check') {
             steps {
-                script 
-                {
-                    echo "checking "
+                script {
+                    // Determine if there have been any changes to the repository. If not, set the NO_CHANGES environment variable to true
                     pipelinefunctions.checkChanges()
                 }
             }
         }
 
-        stage('Cleanup') 
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
+        // Clean up the workspace to ensure a fresh environment for this run, and remove outdated docker images
+        stage('Cleanup') {
+            when {
+                // Only run this stage if there have been changes to the repository
+                expression { return env.NO_CHANGES != "true" }
             }
-            steps 
-            {
-                script 
-                {
-
-                    echo "attempting Workspace Cleanup"
+            steps {
+                script {
+                    // Clean up the Jenkins workspace to remove any old data or artifacts
                     pipelinefunctions.cleanupWorkspace()
-                    echo "attempting Docker Cleanup"
+                    
+                    // Remove old Docker images to free up space and ensure only the latest images are used
                     dockerfunctions.deleteImageVersion("s0ultak3r/dockerflask")
                     dockerfunctions.deleteImageVersion("s0ultak3r/dockerdb")
                 }
             }
         }
 
-        stage('Build(Git Clone, Helm Package)') 
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
+        // Clone the latest code from the repository, download the latest Unity build, and package the application into a Helm chart
+        stage('Build(Git Clone, Helm Package)') {
+            when {
+                // Only run this stage if there have been changes to the repository
+                expression { return env.NO_CHANGES != "true" }
             }
-            steps 
-            {
-                script 
-                {
+            steps {
+                script {
+                    // Clone the latest version of the source code from the git repository
                     gitfunctions.clonegit(env.GITURL)
+                    
+                    // Download the latest Unity build from an S3 bucket
                     sh "aws s3 cp s3://daniel-sela/unity-build.zip unity-build.zip"
+                    
+                    // Extract the Unity build to the appropriate directory
                     sh "unzip unity-build.zip -d ./flask/flask-app/Static/"
+
+                    // Package the application into a Helm chart, and either upload it to a GCS bucket (if changes were detected) 
+                    // or fetch the latest version of the chart from the bucket (if no changes were detected)
                     helmfunctions.packageHelmChart("./flask", "my-terraform-state-bucket-flaskproject", "helm-packages")
                 }
             }
         }
 
-
-        stage('Install Dependencies') 
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
+        // Install required dependencies for the project
+        stage('Install Dependencies') {
+            when {
+                // Only run this stage if there have been changes to the repository
+                expression { return env.NO_CHANGES != "true" }
             }
-            steps 
-            {
-                script 
-                {
+            steps {
+                script {
+                    // Install system-level dependencies required for the project using Ansible
                     ansiblefunctions.installDependenciesSystemLvl(env.ANSIBLEFOLDER,"installLocal.yml")
                 }
             }
         }
 
-        stage('Prepare GKE Cluster') 
-        {
-            steps 
-            {
-                script 
-                {
-                    // Change the current working directory to where your Terraform files are
-                    dir('./flask/TerraformFiles') 
-                    {
-                        // Initialize Terraform
-                        sh 'terraform init'
-                        sh 'terraform apply -auto-approve'
-                        echo 'Updating kubectl context...'
-                        sh 'gcloud container clusters get-credentials cluster-flask2 --zone me-west1-a --project vernal-tracer-393305'
-                    }
+        // Provision or update the cloud infrastructure using Terraform
+        stage('Prepare GKE Cluster') {
+            steps {
+                script {
+                    // Use Terraform to provision or update the Google Kubernetes Engine (GKE) cluster
+                    terraformApply("./flask/TerraformFiles","cluster-flask2","me-west1-a","vernal-tracer-393305")
                 }
             }
         }
 
-
-        stage('Docker Login')
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
+        // Log in to DockerHub to enable pushing of Docker images
+        stage('Docker Login') {
+            when {
+                // Only run this stage if there have been changes to the repository
+                expression { return env.NO_CHANGES != "true" }
             }
-            steps
-            {
-                script
-                {
+            steps {
+                script {
+                    // Authenticate with DockerHub using stored Jenkins credentials to enable pushing of Docker images
                     dockerfunctions.loginDockerHub()
                 }
             }
         }
 
-        stage('Build-create dockerFlask image and push') 
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
-            }
-            steps 
-            {
-                script 
-                {
-                    dockerfunctions.BuildCheckAndPushV2(env.DOCKERPROJECTNAME, "./flask/flask-app/")
-                }
-            }
-        }
-
-        stage('Build-create dockerDB image and push') 
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
-            }
-            steps 
-            {
-                script 
-                {
-                    dockerfunctions.BuildCheckAndPush(env.DOCKERDBNAME, "./flask/mysql/")
-                }
-            }
-        }
-
-
-
-        stage('Deployment To Testing Environment') {
+        // Build Docker images for the Flask application and the database, and push them to DockerHub
+        stage('Parallel Docker Build and Push') {
             when {
-                expression {
-                    return env.NO_CHANGES != "true"
-                }
+                // Only run this stage if there have been changes to the repository
+                expression { return env.NO_CHANGES != "true" }
             }
             steps {
-                echo 'Making Sure I am in the right context...'
                 script {
-                    k8functions.changeContext("docker-desktop")
-                }
-                
-                echo "Fetching the latest chart version..."
-                script {
-                    def latestChart = sh(script: "ls ./flask/myproject*.tgz | sort -V | tail -n 1", returnStdout: true).trim()
-                    env.LATEST_CHART_PATH = latestChart
-                }
-
-                echo "Deploying application using Helm..."
-                script {
-                    def releaseName = "flask-release"
-                    sh "helm upgrade --install ${releaseName} ${env.LATEST_CHART_PATH}"
-                }
-
-                echo "Retrieving TCP port..."
-                script {
-                    def tcpport = sh(script: "kubectl get service flask-service-testing -o=jsonpath='{.spec.ports[*].nodePort}'", returnStdout: true).trim()
-                    env.KUBECTLTCPPORT = tcpport
+                    // Build Docker images for the Flask application and the database in parallel to save time
+                    // If there are relevant changes detected in the source code, the images will also be pushed to DockerHub
+                    parallel(
+                        "Build-create dockerFlask image and push": {
+                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERPROJECTNAME, "./flask/flask-app/")
+                        },
+                        "Build-create dockerDB image and push": {
+                            dockerfunctions.BuildCheckAndPush(env.DOCKERDBNAME, "./flask/mysql/")
+                        }
+                    )
                 }
             }
         }
 
-
-
-
-
-
-        stage('Rollout Restart') 
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
+        // Deploy the application to a testing environment using Helm
+        stage('Deployment To Testing Environment') {
+            when {
+                // Only run this stage if there have been changes to the repository
+                expression { return env.NO_CHANGES != "true" }
+            }
+            steps {
+                script {
+                    // Deploy the application to a Kubernetes testing environment using Helm, targeting a specific environment (e.g., "Testing")
+                    helmfunctions.deployToK8s("docker-desktop","myproject","./flask","Testing","flask-test")
+                    
+                    // Retrieve the TCP port on which the Flask application is accessible in the testing environment
+                    k8functions.getTcpPort("flask-service-testing")
                 }
             }
-            steps 
-            {
-                script
-                {
+        }
+
+        // Restart the Kubernetes deployments to ensure they are using the latest Docker images
+        stage('Rollout Restart') {
+            when {
+                // Only run this stage if there have been changes to the repository
+                expression { return env.NO_CHANGES != "true" }
+            }
+            steps {
+                script {
+                    // Perform a rollout restart on the Flask and MySQL deployments to ensure they pick up the latest Docker images
                     k8functions.rollout("deployment/flask-deployment")
                     k8functions.rollout("deployment/mysql-deployment")
                 }
             }
         }
 
-        stage('Testing Test Enviornment')
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
+        // Test the application in the testing environment to ensure it is working correctly
+        stage('Testing Test Environment') {
+            when {
+                // Only run this stage if there have been changes to the repository
+                expression { return env.NO_CHANGES != "true" }
             }
-            steps
-            {
-                script
-                {
+            steps {
+                script {
+                    // Test the Flask application in the testing environment using a simple curl command to ensure it responds correctly
                     testingfunctions.curlTest(env.WINDOWSIP,env.KUBECTLTCPPORT)
                 }
             }
         }
 
-        stage('Closing Testing Environment')
-        {
-            when
-            {
-                expression
-                {
-                    return env.NO_CHANGES != "true"
-                }
+        // Shut down the testing environment now that testing is complete
+        stage('Closing Testing Environment') {
+            when {
+                // Only run this stage if there have been changes to the repository
+                expression { return env.NO_CHANGES != "true" }
             }
-            steps
-            {
-                script
-                {
-                    echo "closing test environment..."
+            steps {
+                script {
+                    // Uninstall the Helm release for the Flask application in the testing environment, effectively shutting it down
                     k8functions.uninstallHelmRelease("flask-release")
                 }
             }
         }
 
-
-
-        stage('Deploying On Google Kubernetes Production') 
-        {
+        // Deploy the application to a production environment using Helm
+        stage('Deploying On Google Kubernetes Production') {
             when {
-                expression {
-                    return env.NO_CHANGES != "true"
-                }
+                // Only run this stage if there have been changes to the repository
+                expression { return env.NO_CHANGES != "true" }
             }
             steps {
                 script {
-                    echo "Deploying on Google Kubernetes production..."
-                    k8functions.changeContext("gke_vernal-tracer-393305_me-west1-a_cluster-flask2")
+                    // Deploy the application to a Kubernetes production environment using Helm, targeting a specific environment (e.g., "Production")
+                    helmfunctions.deployToK8s("gke_vernal-tracer-393305_me-west1-a_cluster-flask2","myproject","./flask","Production","flask-prod")
                     
-                    // Extract the name of the latest Helm package from the current directory
-                    def chartPackagePath = sh(script: "ls ./flask/myproject*.tgz | sort -V | tail -n 1", returnStdout: true).trim()
-
-                    // Check if Helm release exists
-                    def releaseName = "flask-prod"
-                    def releaseExists = sh(script: "helm list -q | grep ${releaseName}", returnStatus: true)
-
-                    if (releaseExists == 0) {
-                        // Helm release exists, upgrade it
-                        sh "helm upgrade ${releaseName} ${chartPackagePath}"
-                    } else {
-                        // Helm release doesn't exist, install it
-                        sh "helm install ${releaseName} ${chartPackagePath}"
-                    }
+                    // Retrieve detailed information about the production environment for logging or diagnostic purposes
+                    k8functions.getAllInfo()
                 }
             }
         }
 
-
-
-
-
-        stage('Rollout Restart Production') 
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
+        // Restart the Kubernetes deployments in the production environment to ensure they are using the latest Docker images
+        stage('Rollout Restart Production') {
+            when {
+                // Only run this stage if there have been changes to the repository
+                expression { return env.NO_CHANGES != "true" }
             }
-            steps 
-            {
-                script
-                {
-                    echo 'Performing rollout restart...'
+            steps {
+                script {
+                    // Perform a rollout restart on the Flask and MySQL deployments in the production environment to ensure they pick up the latest Docker images
                     k8functions.rollout("deployment/flask-deployment")
                     k8functions.rollout("deployment/mysql-deployment")
                     k8functions.getAllInfo()
@@ -342,24 +236,18 @@ pipeline
             }
         }
 
-        stage('closing proxy')
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
+        // Shut down the proxy that was started at the beginning of the pipeline
+        stage('closing proxy') {
+            when {
+                // Only run this stage if there have been changes to the repository
+                expression { return env.NO_CHANGES != "true" }
             }
-            steps
-            {
-                script
-                {
+            steps {
+                script {
+                    // Close the proxy on the remote machine to clean up and finalize the pipeline
                     k8functions.closeProxyRemote(env.WINDOWSIP)
                 }
             }
         }
-
-
     }
 }

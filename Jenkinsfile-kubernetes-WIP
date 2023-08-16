@@ -202,7 +202,7 @@ pipeline {
             steps {
                 script {
                     // Uninstall the Helm release for the Flask application in the testing environment, effectively shutting it down
-                    k8functions.uninstallHelmRelease("flask-release")
+                    k8functions.uninstallHelmRelease("flask-test")
                 }
             }
         }

@@ -31,7 +31,6 @@ pipeline
         TERRAFORMFOLDERNAME = "${params.TERRAFORMFOLDERNAME}"
         FLASKBUILDFOLDER = "${params.FLASKBUILDFOLDER}"
         DBBUILDFOLDER = "${params.DBBUILDFOLDER}"
-        //helmfunctions.deployToK8s("docker-desktop","myproject","./flask","Testing","flask-test")
         TESTCONTEXT = "${params.TESTCONTEXT}"
         TESTHELMRELEASE = "${params.TESTHELMRELEASE}"
         PRODCONTEXT = "${params.PRODCONTEXT}"
@@ -192,10 +191,10 @@ pipeline
                     // If there are relevant changes detected in the source code, the images will also be pushed to DockerHub
                     parallel(
                         "Build-create dockerFlask image and push": {
-                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERPROJECTNAME, "${env.GITROOTFOLDER}/${env.FLASKBUILDFOLDER}/")
+                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERFLASKIMAGE, "${env.GITROOTFOLDER}/${env.FLASKBUILDFOLDER}/")
                         },
                         "Build-create dockerDB image and push": {
-                            dockerfunctions.BuildCheckAndPush(env.DOCKERDBNAME, "${env.GITROOTFOLDER}/${env.DBBUILDFOLDER}/")
+                            dockerfunctions.BuildCheckAndPush(env.DOCKERDBIMAGE, "${env.GITROOTFOLDER}/${env.DBBUILDFOLDER}/")
                         }
                     )
                 }

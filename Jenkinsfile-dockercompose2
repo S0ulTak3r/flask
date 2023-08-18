@@ -6,12 +6,30 @@ pipeline
 
     environment 
     {
-        SSHKEYLOCATION = "/var/lib/jenkins/.ssh/Daniel.pem"
-        DOCKERPROJECTNAME = "s0ultak3r/dockerflask"
-        DOCKERDBNAME= "s0ultak3r/dockerdb"
-        ANSIBLEFOLDER= "/var/lib/jenkins/AnsibleFiles/Daniel-B-AutoAnsible"
-        GITURL= "git@github.com:S0ulTak3r/flask.git"
-        REQLOCATION= "./flask/flask-app/requirements.txt"
+        // Define environment variables that will be used throughout the pipeline
+        SSHKEYLOCATION = "${params.SSHKEYLOCATION}"
+        DOCKERFLASKIMAGE = "${params.DOCKERFLASKNAME}"
+        DOCKERDBIMAGE = "${params.DOCKERDBNAME}"
+        ANSIBLEFOLDER = "${params.ANSIBLEFOLDER}"
+        GITURL = "${params.GITURL}"
+        REQLOCATION = "${params.REQLOCATION}"
+        GIT_SSH_COMMAND = "ssh -o StrictHostKeyChecking=no"
+        WINDOWSIP= "${params.WINDOWSIP}"
+        GITROOTFOLDER = "${params.GITROOTFOLDER}"
+        GCSBUCKETNAME = "${params.GCSBUCKETNAME}"
+        GCSHELMFOLDER = "${params.GCSHELMFOLDER}"
+        INSTALLLOCALPLAYBOOK = "${params.INSTALLLOCALPLAYBOOK}"
+        CLUSTERNAME = "${params.CLUSTERNAME}"
+        CLUSTERZONE = "${params.CLUSTERZONE}"
+        GOOGLEPROJECTNAME = "${params.GOOGLEPROJECTNAME}"
+        TERRAFORMFOLDERNAME = "${params.TERRAFORMFOLDERNAME}"
+        FLASKBUILDFOLDER = "${params.FLASKBUILDFOLDER}"
+        DBBUILDFOLDER = "${params.DBBUILDFOLDER}"
+        TESTCONTEXT = "${params.TESTCONTEXT}"
+        TESTHELMRELEASE = "${params.TESTHELMRELEASE}"
+        PRODCONTEXT = "${params.PRODCONTEXT}"
+        PRODHELMRELEASE = "${params.PRODHELMRELEASE}"
+        HELMPACKAGENAME = "${params.HELMPACKAGENAME}"
     }
 
     triggers 
@@ -49,8 +67,8 @@ pipeline
                     pipelinefunctions.cleanupWorkspace()
                     sh "sudo docker image prune --force"
                     sh "sudo docker container prune --force"
-                    dockerfunctions.deleteImageVersion(env.DOCKERPROJECTNAME)
-                    dockerfunctions.deleteImageVersion(env.DOCKERDBNAME)
+                    dockerfunctions.deleteImageVersion(env.DOCKERFLASKIMAGE)
+                    dockerfunctions.deleteImageVersion(env.DOCKERDBIMAGE)
                 }
             }
         }
@@ -88,7 +106,7 @@ pipeline
             {
                 script 
                 {
-                    ansiblefunctions.installDependenciesSystemLvl(env.ANSIBLEFOLDER,"installLocal.yml")
+                    ansiblefunctions.installDependenciesSystemLvl(env.ANSIBLEFOLDER,env.INSTALLLOCALPLAYBOOK)
                 }
             }
         }
@@ -110,38 +128,29 @@ pipeline
                 }
             }
         }
-        stage('Build-create docker image and push') 
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
-            }
-            steps 
-            {
-                script
-                {
-                    dockerfunctions.BuildAndPush(env.DOCKERPROJECTNAME, "./flask/flask-app/")
-                }
-            }
-        }
         
-        stage('Build-create docker image and pushaaaa') 
+        // Build Docker images for the Flask application and the database, and push them to DockerHub
+        stage('Parallel Docker Build and Push') 
         {
             when 
             {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
+                // Only run this stage if there have been changes to the repository
+                expression { return shouldRunStage() }
             }
             steps 
             {
-                script
+                script 
                 {
-                    dockerfunctions.BuildAndPush(env.DOCKERDBNAME, "./flask/mysql/")
+                    // Build Docker images for the Flask application and the database in parallel to save time
+                    // If there are relevant changes detected in the source code, the images will also be pushed to DockerHub
+                    parallel(
+                        "Build-create dockerFlask image and push": {
+                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERFLASKIMAGE, "${env.GITROOTFOLDER}/${env.FLASKBUILDFOLDER}/")
+                        },
+                        "Build-create dockerDB image and push": {
+                            dockerfunctions.BuildCheckAndPush(env.DOCKERDBIMAGE, "${env.GITROOTFOLDER}/${env.DBBUILDFOLDER}/")
+                        }
+                    )
                 }
             }
         }

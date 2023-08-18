@@ -14,7 +14,7 @@ Kubernetes On A Cloud ---> Optional, only if using the kubernetes pipeline, alth
 Docker-for-desktop ---> yet again, only if you are using the kubernetes pipeline (make sure you installed kubernetes on it)
 
 SSH connection with the VM that is hosting Jenkins (To Enable The Proxy On Windows, although you can run it manually and remove the proxy steps)
-
+s
 
 AWS account and user permissions
 

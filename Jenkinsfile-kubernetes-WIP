@@ -153,7 +153,7 @@ pipeline
                 script 
                 {
                     // Use Terraform to provision or update the Google Kubernetes Engine (GKE) cluster
-                    terraformfunctions.terraformApply("${env.GITROOTFOLDER}/${env.TERRAFORMFOLDER}",env.CLUSTERNAME,env.CLUSTERZONE,env.GOOGLEPROJECTNAME) 
+                    terraformfunctions.terraformApply("${env.GITROOTFOLDER}/${env.TERRAFORMFOLDERNAME}",env.CLUSTERNAME,env.CLUSTERZONE,env.GOOGLEPROJECTNAME) 
                 }
             }
         }

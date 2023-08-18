@@ -14,8 +14,8 @@ pipeline
     {
         // Define environment variables that will be used throughout the pipeline
         SSHKEYLOCATION = "${params.SSHKEYLOCATION}"
-        DOCKERFLASKIMAGE = "${params.DOCKERFLASKNAME}"
-        DOCKERDBIMAGE = "${params.DOCKERDBNAME}"
+        DOCKERFLASKIMAGE = "${params.DOCKERFLASKIMAGE}"
+        DOCKERDBIMAGE = "${params.DOCKERDBIMAGE}"
         ANSIBLEFOLDER = "${params.ANSIBLEFOLDER}"
         GITURL = "${params.GITURL}"
         REQLOCATION = "${params.REQLOCATION}"

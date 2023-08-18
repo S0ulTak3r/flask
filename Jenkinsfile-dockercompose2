@@ -128,14 +128,14 @@ pipeline
                 }
             }
         }
-        
+
         // Build Docker images for the Flask application and the database, and push them to DockerHub
         stage('Parallel Docker Build and Push') 
         {
             when 
             {
                 // Only run this stage if there have been changes to the repository
-                expression { return shouldRunStage() }
+                expression { return env.NO_CHANGES != "true" }
             }
             steps 
             {

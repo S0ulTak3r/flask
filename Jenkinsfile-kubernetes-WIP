@@ -31,7 +31,7 @@ pipeline
         TERRAFORMFOLDERNAME = "${params.TERRAFORMFOLDERNAME}"
         FLASKBUILDFOLDER = "${params.FLASKBUILDFOLDER}"
         DBBUILDFOLDER = "${params.DBBUILDFOLDER}"
-        helmfunctions.deployToK8s("docker-desktop","myproject","./flask","Testing","flask-test")
+        //helmfunctions.deployToK8s("docker-desktop","myproject","./flask","Testing","flask-test")
         TESTCONTEXT = "${params.TESTCONTEXT}"
         TESTHELMRELEASE = "${params.TESTHELMRELEASE}"
         PRODCONTEXT = "${params.PRODCONTEXT}"

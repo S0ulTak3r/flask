@@ -1,16 +1,3 @@
-/* MENU SHOW */ 
-const showMenu = (toggleId, navId) =>{
-    const toggle = document.getElementById(toggleId),
-    nav = document.getElementById(navId)
-
-    if(toggle && nav){
-        toggle.addEventListener('click', ()=>{
-            nav.classList.toggle('show')
-        })
-    }
-}
-
-showMenu('nav-toggle','nav-menu')
 
 /*----- ANIMATE -----*/
 // OVERLAY
@@ -72,19 +59,6 @@ window.addEventListener('scroll', () => {
         // If it's not, remove the class that slides up and fades the header
         header.classList.remove('slideUp');
     }
-});
-
-
-
-// Get all the nav links
-var navLinks = document.querySelectorAll('.nav__link');
-
-// Add event listener to each link
-navLinks.forEach(function(link) {
-    link.addEventListener('click', function() {
-        // Remove the 'show' class from the nav menu
-        document.getElementById('nav-menu').classList.remove('show');
-    });
 });
 
 

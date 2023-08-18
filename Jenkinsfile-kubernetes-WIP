@@ -14,13 +14,23 @@ pipeline
     {
         // Define environment variables that will be used throughout the pipeline
         SSHKEYLOCATION = "${params.SSHKEYLOCATION}"
-        DOCKERFLASKNAME = "${params.DOCKERFLASKNAME}"
-        DOCKERDBNAME = "${params.DOCKERDBNAME}"
+        DOCKERFLASKIMAGE = "${params.DOCKERFLASKNAME}"
+        DOCKERDBIMAGE = "${params.DOCKERDBNAME}"
         ANSIBLEFOLDER = "${params.ANSIBLEFOLDER}"
         GITURL = "${params.GITURL}"
         REQLOCATION = "${params.REQLOCATION}"
         GIT_SSH_COMMAND = "ssh -o StrictHostKeyChecking=no"
         WINDOWSIP= "${params.WINDOWSIP}"
+        GITROOTFOLDER = "${params.GITROOTFOLDER}"
+        GCSBUCKETNAME = "${params.GCSBUCKETNAME}"
+        GCSHELMFOLDER = "${params.GCSHELMFOLDER}"
+        INSTALLLOCALPLAYBOOK = "${params.INSTALLLOCALPLAYBOOK}"
+        CLUSTERNAME = "${params.CLUSTERNAME}"
+        CLUSTERZONE = "${params.CLUSTERZONE}"
+        GOOGLEPROJECTNAME = "${params.GOOGLEPROJECTNAME}"
+        TERRAFORMFOLDERNAME = "${params.TERRAFORMFOLDERNAME}"
+        FLASKBUILDFOLDER = "${params.FLASKBUILDFOLDER}"
+        DBBUILDFOLDER = "${params.DBBUILDFOLDER}"
     }
 
     triggers 
@@ -72,8 +82,8 @@ pipeline
                     pipelinefunctions.cleanupWorkspace()
                     
                     // Remove old Docker images to free up space and ensure only the latest images are used
-                    dockerfunctions.deleteImageVersion("s0ultak3r/dockerflask")
-                    dockerfunctions.deleteImageVersion("s0ultak3r/dockerdb")
+                    dockerfunctions.deleteImageVersion(env.DOCKERFLASKIMAGE)
+                    dockerfunctions.deleteImageVersion(env.DOCKERDBIMAGE)
                 }
             }
         }
@@ -101,7 +111,7 @@ pipeline
 
                     // Package the application into a Helm chart, and either upload it to a GCS bucket (if changes were detected) 
                     // or fetch the latest version of the chart from the bucket (if no changes were detected)
-                    helmfunctions.packageHelmChart("./flask", "my-terraform-state-bucket-flaskproject", "helm-packages")
+                    helmfunctions.packageHelmChart(env.GITROOTFOLDER, env.GCSBUCKETNAME, env.GCSHELMFOLDER)
                 }
             }
         }
@@ -119,7 +129,7 @@ pipeline
                 script 
                 {
                     // Install system-level dependencies required for the project using Ansible
-                    ansiblefunctions.installDependenciesSystemLvl(env.ANSIBLEFOLDER,"installLocal.yml")
+                    ansiblefunctions.installDependenciesSystemLvl(env.ANSIBLEFOLDER,env.INSTALLLOCALPLAYBOOK)
                 }
             }
         }
@@ -137,7 +147,7 @@ pipeline
                 script 
                 {
                     // Use Terraform to provision or update the Google Kubernetes Engine (GKE) cluster
-                    terraformfunctions.terraformApply("./flask/TerraformFiles","cluster-flask2","me-west1-a","vernal-tracer-393305")
+                    terraformfunctions.terraformApply("${env.GITROOTFOLDER}/${env.TERRAFORMFOLDER}",env.CLUSTERNAME,env.CLUSTERZONE,env.GOOGLEPROJECTNAME) 
                 }
             }
         }
@@ -176,10 +186,10 @@ pipeline
                     // If there are relevant changes detected in the source code, the images will also be pushed to DockerHub
                     parallel(
                         "Build-create dockerFlask image and push": {
-                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERPROJECTNAME, "./flask/flask-app/")
+                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERPROJECTNAME, "${env.GITROOTFOLDER}/${env.FLASKBUILDFOLDER}/")
                         },
                         "Build-create dockerDB image and push": {
-                            dockerfunctions.BuildCheckAndPush(env.DOCKERDBNAME, "./flask/mysql/")
+                            dockerfunctions.BuildCheckAndPush(env.DOCKERDBNAME, "${env.GITROOTFOLDER}/${env.DBBUILDFOLDER}/")
                         }
                     )
                 }

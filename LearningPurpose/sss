@@ -1,0 +1,832 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap");
+
+/*Variables css*/
+
+/*Color Pallete*/
+
+:root 
+{
+    --first-color: #FCBE85;
+    --black-color: 	#E0FBFC;
+    --white-color: #293241;
+}
+
+
+/*Font and typography*/
+
+:root 
+{
+    --body-font: 'Poppins', sans-serif;
+    --h1-font-size: 4.5rem;
+    --h2-font-size: 2rem;
+    --normal-font-size: 1rem;
+    --small-font-size: 1.37rem;
+}
+
+
+/*z index*/
+:root 
+{
+    --z-back: -10;
+    --z-normal: 1;
+    --z-tooltip: 10;
+    --z-fixed: 100;
+    --z-modal: 1000;
+}
+
+html,body
+{
+    scroll-behavior: smooth;
+}
+
+body
+{
+    margin: 0 0 0 0;
+    font-family: var(--body-font);
+    background-color: var(--white-color);
+    color: var(--black-color);
+    font-weight: 700;
+}
+
+
+/*ANIMATE*/
+.overlay 
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: var(--z-modal);
+}
+  
+.first 
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--first-color);
+    z-index: var(--z-modal);
+}
+  
+.second 
+{
+    position: fixed;
+    top: 0;
+    left: 33.3%;
+    background-color: var(--first-color);
+    z-index: var(--z-modal);
+}
+  
+.third 
+{
+    position: fixed;
+    top: 0;
+    left: 66.6%;
+    background-color: var(--first-color);
+    z-index: var(--z-modal);
+}
+
+/*----- ANIMATE Typing-----*/
+
+.typing-animation {
+    overflow: hidden;
+    border-right: 2px solid;
+    white-space: nowrap;
+    animation: typing 4s steps(30, end) 1s 1 normal both, blink 1s infinite;
+    width: 0;
+    max-width: 16ch;
+}
+
+@keyframes typing {
+    100% {
+        width: 16ch;
+    }
+}
+
+@keyframes blink {
+    0%, 100% { border-color: transparent }
+    50% { border-color: var(--first-color) }
+}
+
+h1, h2 
+{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+ul 
+{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+a 
+{
+    text-decoration: none;
+}
+
+img 
+{
+    max-width: 100%;
+    height: auto;
+}
+
+span 
+{
+    font-weight: 700;
+}
+
+.l-header
+{
+    width: 100%;
+    height: 2rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--z-fixed);
+    background-color: var(--first-color);
+    transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+}
+
+.nav 
+{
+    height: 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+}
+
+.nav__list
+{
+    border: #293241 1px solid;
+    text-align: center;
+    padding: 20px;
+    display: flex;
+    padding-top: 0;
+    margin-top: 2.8rem;
+}
+
+.nav__item 
+{
+    margin-bottom: 1.5rem;
+    margin-left: 3rem;
+}
+
+.nav__toggle, .nav__close 
+{
+    display: none;
+}
+
+.nav__link 
+{
+    position: relative;
+    font-size: var(--normal-font-size);
+    color: var(--black-color);
+    text-transform: initial;
+}
+
+.nav__link::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;  /* Start from the center */
+    transform: translateX(-50%);  /* Ensures the starting point is at the center of the text */
+    width: 0;
+    height: 3px;
+    background-color: var(--first-color);
+    transition: all 0.3s;
+    visibility: hidden;
+}
+
+.nav__link:hover::after {
+    width: 75%;  /* The underline will expand to 75% of the text width */
+    visibility: visible;
+}
+
+.nav__logo 
+{
+    white-space: nowrap;
+    font-size: var(--normal-font-size);
+    color: var(--black-color);
+    padding-left: 2vw;
+}
+
+.nav__toggle {
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/*Menu*/
+.show {
+    top: 3rem;
+}
+
+
+
+
+
+
+    
+/*Home*/
+.home 
+{
+    padding: 20px;
+    margin-top: 30vh;
+}
+
+.home__information 
+{
+    z-index: var(--z-tooltip);
+}
+
+.home__pressent 
+{
+  font-size: var(--small-font-size);
+}
+
+.home__pressent2
+{
+  font-size: var(--small-font-size);
+}
+
+.home__title 
+{
+    font-size: var(--h1-font-size);
+    color: var(--first-color);
+}
+
+.home__skill 
+{
+    font-size: var(--h2-font-size);
+}
+
+/* Base styles for the button */
+.home__button {
+    display: inline-block;
+    margin-top: 1.5rem;
+    font-size: .75rem;
+    color: var(--white-color);
+    padding: .625rem 1rem;
+    border-radius: .25rem;
+    background-color: var(--first-color);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border: none;
+}
+
+/* Button animation on hover */
+.home__button::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background-color: #FFA500; /* Darker shade of orange */
+    transition: width 0.5s ease;
+    z-index: -1;
+}
+
+.home__button:hover::before {
+    width: 100%;
+}
+
+.home__img
+{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 65vh;
+    height: auto;
+    margin-right: 10vw;
+    z-index: var(--z-back);
+}
+
+.home__img::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(to right, var(--white-color) 0%, rgba(255, 255, 255, 0) 20%),
+                linear-gradient(to top, var(--white-color) 0%, rgba(255, 255, 255, 0) 20%),
+                linear-gradient(to top, var(--white-color) 0%, rgba(255, 255, 255, 0) 10%);
+    pointer-events: none;
+}
+
+
+
+
+
+
+.social-icons a
+{
+    text-decoration: none;
+    color: var(--black-color);
+    font-size: 30px;
+    margin-right: 15px;
+    display: inline-block;
+    transition: transform 0.5s;
+}
+
+.social-icons a:hover
+{
+    color: var(--first-color);
+    transform: translateY(-5px);
+}
+
+.home__social {
+    margin-top: 20vh;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 1rem;
+    margin-right: 2vw;
+    font-size: 2rem;
+    cursor: pointer;
+    width: fit-content;
+    position: relative;
+    color: var(--black-color);
+    padding: 5px; /* Add some padding to space the border from the icon/content */
+}
+
+.home__social-icon{
+    font-size: inherit;
+    display: flex;
+    transition: transform 0.5s;
+}
+
+.icon-wrapper:hover .home__social-icon {
+    color: var(--first-color) !important;
+    transform: translateY(-10px) !important;
+}
+
+/* ------------------about section------------------ */
+#About {
+    padding: 20px;
+    margin: 10vh 0;
+}
+
+
+.container_about 
+{
+    border: 1px solid #eaeaea; /* Set a border */
+    border-radius: 15px; /* Add rounded corners */
+    padding: 20px; /* Add padding */
+    background: var(--white-color); /* Set a different background color */
+    box-shadow: 0px 10px 30px 10px rgba(0, 0, 0, 0.8); /* Add shadow */
+}
+
+.row 
+{ 
+    display: grid;
+    grid-template-columns: 35% 60%; /* Sets column widths */
+    gap: 5%; /* Space between columns */
+}
+
+
+
+.about-col-1 {
+    display: flex;
+    align-items: center; /* Vertically centers the image in the grid cell */
+    justify-content: center; /* Horizontally centers the image in the grid cell */
+}
+
+.about-col-1 img 
+{
+    width: 100%;
+    height: auto;
+    border-radius: 15px;
+}
+
+
+.about-col-2
+{
+    margin-top: 5vh;
+    flex-basis: 60%;
+    padding-bottom: 20px;
+}
+
+.sub-title
+{
+    font-size: 60px;
+    font-weight: 600;
+    color: var(--black-color);
+}
+.tab-titles
+{
+    margin: 20px 0 20px;
+    display: flex;
+}
+
+.tab-links
+{
+    margin-right: 35px;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--black-color);
+    cursor: pointer;
+    position: relative;
+}
+
+.tab-links::after
+{
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;  /* Start from the center */
+    transform: translateX(-50%);  /* Ensures the starting point is at the center of the text */
+    width: 0;
+    height: 3px;
+    background: var(--first-color);
+    transition: all 0.2s;
+    transition-delay: 0.1s;
+    visibility: hidden; /* Initially the underline is invisible */
+}
+
+.tab-links:hover::after, .tab-links.active-link::after
+{
+    width: 75%;  /* The underline will expand to 90% of the text width */
+    visibility: visible; /* On hover or when active, the underline becomes visible */
+}
+
+
+.tab-contents ul li
+{
+    list-style: none;
+    margin: 10px 0;
+}
+
+.tab-contents ul li span
+{
+    color:  var(--first-color);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.tab-contents
+{
+    display: none;
+}
+
+.tab-contents.active-tab
+{
+    display: block;
+}
+
+
+
+/* ------------------services section------------------ */
+
+#Services
+{
+    padding: 20px;
+}
+.services-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-gap: 40px;
+    margin-top: 50px;
+}
+
+.services-list .flip-card {
+    background: #FCBE85;
+    height: 200px;
+    padding: 40px;
+    font-size: 13px;
+    font-weight: 300;
+    border-radius: 10px;
+    transition: background 0.5s, transform 0.5s, color 0.5s;
+    perspective: 1000px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+}
+
+
+.services-list .flip-card i {
+    font-size: 50px;
+    margin-bottom: 10px;
+}
+
+.services-list .flip-card h2 {
+    font-size: 30px;
+    font-weight: 500;
+    margin-bottom: 15px;
+}
+
+.services-list .flip-card a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 12px;
+    margin-top: 20px;
+    display: inline-block;
+}
+
+.services-list .flip-card:hover {
+    background: #ee6c4d;
+}
+
+.services-list .flip-card:hover .flip-card-back {
+    background-color: #ee6c4d;
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+    display: flex;
+    justify-content: center;
+}
+
+.flip-card:hover .flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+}
+
+.flip-card-front {
+    background-color: #FCBE85;
+    color: black;
+}
+
+.flip-card-back {
+    background-color: #FCBE85;
+    color: white;
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: background-color 0.5s;
+}
+
+.flip-card-front {
+    background-color: #FCBE85;
+    color: black;
+    transition: background-color 0.5s;
+}
+
+.services-list .flip-card:hover .flip-card-front {
+    background-color: #ee6c4d;
+}
+
+
+
+/* ------------------portfolio section------------------ */
+
+#Portfolio
+{
+    padding: 20px;
+    margin: 25vh 0;
+}
+
+.container_portfolio {
+    border: 1px solid #eaeaea; /* Set a border */
+    border-radius: 15px; /* Add rounded corners */
+    padding: 20px; /* Add padding */
+    background: var(--white-color); /* Set a different background color */
+    box-shadow: 0px 10px 30px 10px rgba(0, 0, 0, 0.8); /* Add shadow */
+}
+
+.work-list
+{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 2fr));
+    grid-gap: 25px;
+    margin-top: 50px;
+}
+
+.work
+{
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.work img
+{
+    width: 100%;
+    border-radius: 10px;
+    display: block;
+    transition: transform 0.5s;
+}
+
+.layer  
+{
+    width: 100%;
+    height: 0;
+    background: linear-gradient(rgba(0,0,0,0.5), var(--first-color));
+    border-radius: 10px;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 0px;
+    text-align: center;
+    font-size: 14px;
+    transition: height 0.5s;
+}
+
+.layer h3
+{
+    color: #fff;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.layer a
+{
+    text-decoration: none;
+    color: var(--first-color);
+    font-size: 18px;
+    margin-top: 20px;
+    line-height: 60px;
+    background: whitesmoke;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    text-align: center;
+    display: inline-block;
+}
+
+.work:hover img
+{
+    transform: scale(1.1);
+}
+
+.work:hover .layer
+{
+    height: 100%;
+}
+
+.btn
+{
+    display: block;
+    margin: 50px auto;
+    width: fit-content;
+    border: 1px solid #fff;
+    padding: 14px 50px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #fff;
+    transition: background 0.3s;
+}
+
+.btn:hover
+{
+    background: #911002;
+    color: #fff;
+}
+
+
+
+
+.copyright
+{
+    width: 100%;
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background: black;
+    font-weight: 300;
+}
+
+
+
+
+/* Header slide and fade after a certain point */
+.slideUp {
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+}
+
+
+
+/* Mobile Devices */
+@media only screen and (max-width: 768px) 
+{
+
+    :root 
+    {
+        --h1-font-size: 1rem;
+        --h2-font-size: 0.75rem;
+        --normal-font-size: 0.5rem;
+        --small-font-size: 1.2rem;
+    }
+
+    .l-header
+    {
+        width: 100vw;
+        height: 2rem;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: var(--z-fixed);
+        background-color: var(--first-color);
+        transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+    }
+
+    .nav__list
+    {
+        font-size: 0.75rem;
+    }
+
+    .bd-grid {
+        max-width: 100%;      /* Use the full width of the device */
+        padding: 0 0px;      /* Add some padding to the left and right */
+    }
+
+    /* Adjustments for the Home section */
+    .home__img {
+        width: 50vh;
+        position: absolute;
+        bottom: 0;
+        left: 2; /* Moves the left edge to the center of the parent */
+        transform: translateX(-50%); /* Shifts the image back to center it */
+        margin-right: 0; /* Reset margin */
+    }
+    
+    .home__social {
+        text-align: center; /* Center the social icons on mobile */
+    }
+    
+    .icon-wrapper {
+        margin-right: 1.5rem; /* Adjust the spacing between icons for mobile */
+        font-size: 1.5rem; /* Adjust the icon size for mobile */
+    }
+
+    .row {
+        grid-template-columns: 1fr; /* Changes to a single column layout */
+        gap: 20px; /* Adjust the space between the image and the content */
+    }
+
+    .about-col-1{
+        margin-top: 20px; /* Reset the margin on mobile */
+    }
+    .about-col-1 img {
+        width: 80%; /* Adjust the image width as needed for mobile */
+        border-radius: 30%;
+        max-width: 300px;
+        margin: 0 auto; /* Center the image */
+    }
+
+    .about-col-2 {
+        margin-top: 2rem; /* Reset the margin on mobile */
+    }
+
+    .container_about 
+    {
+        height: max-content; /* Adjust this based on your preference */
+    }
+
+    .tab-contents
+    {
+        height: max-content; /* Adjust this based on your content */
+        flex-direction: column; 
+        align-items: center;
+        display: none;
+    }
+
+    .tab-titles {
+        flex-direction: column; 
+        align-items: center;
+    }
+
+    .tab-links 
+    {
+        flex-direction: row;
+        margin-right: 0;
+        margin-bottom: 10px;
+        align-items: center;
+    }
+
+
+    
+
+}

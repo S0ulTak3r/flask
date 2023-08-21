@@ -6,6 +6,7 @@ const showMenu = (toggleId, navId) =>{
     if(toggle && nav){
         toggle.addEventListener('click', ()=>{
             nav.classList.toggle('show')
+            nav.offsetHeight;  // Forces a reflow
         })
     }
 }
@@ -59,8 +60,9 @@ setInterval(function() {
 
 
 
-// Get a reference to your header
+// Get a reference to your header and navMenu
 const header = document.getElementById('myHeader');
+const navMenu = document.getElementById('nav-menu');
 
 // Listen for the scroll event on the window
 window.addEventListener('scroll', () => {
@@ -68,6 +70,11 @@ window.addEventListener('scroll', () => {
     if (window.scrollY > 100) {  // Change 100 to the value you want
         // If it is, add a class that slides up and fades the header
         header.classList.add('slideUp');
+
+        // Also, if navMenu is visible, hide it
+        if (navMenu.classList.contains('show')) {
+            navMenu.classList.remove('show');
+        }
     } else {
         // If it's not, remove the class that slides up and fades the header
         header.classList.remove('slideUp');
@@ -86,6 +93,9 @@ navLinks.forEach(function(link) {
         document.getElementById('nav-menu').classList.remove('show');
     });
 });
+
+
+
 
 
 

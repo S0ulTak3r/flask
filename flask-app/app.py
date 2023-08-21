@@ -1,4 +1,4 @@
-# Flaesk imports
+# Flaesak imports
 from flask import Flask, render_template, redirect, url_for, request, send_from_directory, Response
 
 # Other imports

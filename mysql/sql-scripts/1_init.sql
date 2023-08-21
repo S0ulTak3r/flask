@@ -1,4 +1,4 @@
--- Createeee `images` table
+-- Createeaee `images` table
 CREATE TABLE images(
    id INT AUTO_INCREMENT PRIMARY KEY,
    url VARCHAR(500) NOT NULL,

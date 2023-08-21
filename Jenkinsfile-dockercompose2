@@ -145,10 +145,10 @@ pipeline
                     // If there are relevant changes detected in the source code, the images will also be pushed to DockerHub
                     parallel(
                         "Build-create dockerFlask image and push": {
-                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERFLASKIMAGE, "${env.GITROOTFOLDER}/${env.FLASKBUILDFOLDER}/")
+                            dockerfunctions.BuildAndPush(env.DOCKERFLASKIMAGE, "${env.GITROOTFOLDER}/${env.FLASKBUILDFOLDER}/")
                         },
                         "Build-create dockerDB image and push": {
-                            dockerfunctions.BuildCheckAndPush(env.DOCKERDBIMAGE, "${env.GITROOTFOLDER}/${env.DBBUILDFOLDER}/")
+                            dockerfunctions.BuildAndPush(env.DOCKERDBIMAGE, "${env.GITROOTFOLDER}/${env.DBBUILDFOLDER}/")
                         }
                     )
                 }

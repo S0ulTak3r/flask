@@ -1,4 +1,4 @@
-# Use an officsial Python runtime as a parent image
+# Use an officssial Python runtime as a parent image
 FROM python:3.10.12
 
 # Set a directory for the app

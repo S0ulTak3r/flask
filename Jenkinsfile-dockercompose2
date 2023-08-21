@@ -1,5 +1,6 @@
 
-@Library(value="FunctionsLibrary") _
+@Library(value="FunctionsLibrary", changelog=false) _
+
 pipeline 
 {
     agent any

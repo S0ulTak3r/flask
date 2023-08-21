@@ -1,4 +1,4 @@
-# Start from a base MySQL image
+# Start from a sbase MySQL image
 FROM mysql:8.1.0
 
 # Add a database

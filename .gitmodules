@@ -1,4 +1,3 @@
 [submodule "pipelineFunctions"]
 	path = pipelineFunctions
 	url = git@github.com:S0ulTak3r/PipelineFunctions.git
-	ignore = all

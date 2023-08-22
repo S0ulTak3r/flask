@@ -31,6 +31,7 @@ pipeline
         PRODCONTEXT = "${params.PRODCONTEXT}"
         PRODHELMRELEASE = "${params.PRODHELMRELEASE}"
         HELMPACKAGENAME = "${params.HELMPACKAGENAME}"
+        RELEVANT_DOCKER_TAG = "${params.RELEVANTDOCKERTAG}"
     }
 
     triggers 
@@ -65,14 +66,22 @@ pipeline
             {
                 script
                 {
+                    // Clean up Jenkins workspace
                     pipelinefunctions.cleanupWorkspace()
-                    sh "sudo docker image prune --force"
-                    sh "sudo docker container prune --force"
-                    dockerfunctions.deleteImageVersion(env.DOCKERFLASKIMAGE)
-                    dockerfunctions.deleteImageVersion(env.DOCKERDBIMAGE)
+
+                    // Prune docker containers
+                    dockerfunctions.pruneDockerContainers()
+
+                    // Prune docker images
+                    dockerfunctions.pruneDockerImages()
+
+                    // Retain only the latest versions of the Docker images
+                    dockerfunctions.retainLatestImageVersionOnly(env.DOCKERFLASKIMAGE)
+                    dockerfunctions.retainLatestImageVersionOnly(env.DOCKERDBIMAGE)
                 }
             }
         }
+
         
         stage('Clone') 
         {
@@ -87,12 +96,16 @@ pipeline
             {
                 script
                 {
-                    gitfunctions.clonegit(env.GITURL)
+                    // Clone the repository
+                    gitfunctions.clonegit(env.GITURL, 'master')
+                    
+                    // Download and unzip the unity build
                     sh "aws s3 cp s3://daniel-sela/unity-build.zip unity-build.zip"
                     sh "unzip unity-build.zip -d ./flask/flask-app/Static/"
                 }
             }
         }
+
         
         stage('Install Dependencies') 
         {
@@ -107,7 +120,8 @@ pipeline
             {
                 script 
                 {
-                    ansiblefunctions.installDependenciesSystemLvl(env.ANSIBLEFOLDER,env.INSTALLLOCALPLAYBOOK)
+                    // Install system level dependencies using Ansible
+                    ansiblefunctions.installDependenciesSystemLvl(env.ANSIBLEFOLDER, env.INSTALLLOCALPLAYBOOK)
                 }
             }
         }
@@ -136,7 +150,7 @@ pipeline
             when 
             {
                 // Only run this stage if there have been changes to the repository
-                expression { return env.NO_CHANGES != "true" }
+                expression { return shouldRunStage() }
             }
             steps 
             {
@@ -146,34 +160,36 @@ pipeline
                     // If there are relevant changes detected in the source code, the images will also be pushed to DockerHub
                     parallel(
                         "Build-create dockerFlask image and push": {
-                            dockerfunctions.BuildAndPush(env.DOCKERFLASKIMAGE, "${env.GITROOTFOLDER}/${env.FLASKBUILDFOLDER}")
+                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERFLASKIMAGE, env.GITROOTFOLDER, env.FLASKBUILDFOLDER)
                         },
                         "Build-create dockerDB image and push": {
-                            dockerfunctions.BuildAndPush(env.DOCKERDBIMAGE, "${env.GITROOTFOLDER}/${env.DBBUILDFOLDER}")
+                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERDBIMAGE, env.GITROOTFOLDER, env.DBBUILDFOLDER)
                         }
                     )
+
+                    // Update the default value of the RELEVANTDOCKERTAG parameter
+                    if (env.RELEVANT_DOCKER_TAG) {
+                        updateJobParameters(defaults: [string(name: 'RELEVANTDOCKERTAG', value: env.RELEVANT_DOCKER_TAG)])
+                    }
                 }
             }
         }
 
-        stage('Get Test+Prod Instance Details + install docker')
-        {
-            when 
-            {
-                expression 
-                {
-                    return env.NO_CHANGES != "true"
-                }
+        stage('Get Test+Prod Instance Details') {
+            when {
+                expression { return env.NO_CHANGES != "true" }
             }
-            steps 
-            {
-                //pulls IP of test instance by automatical means
-                script 
-                {
-                    awsfunctions.GetInstanceDetails()
+            steps {
+                script {
+                    def instanceDetails = awsfunctions.GetInstanceDetails()
+                    env.instanceTestId = instanceDetails.testInstance
+                    env.publicTestIp = instanceDetails.testIp
+                    env.instanceProdId = instanceDetails.prodInstance
+                    env.publicProdIp = instanceDetails.prodIp
                 }
             }
         }
+
 
         stage("install test+prod docker")
         {
@@ -206,10 +222,10 @@ pipeline
             {
                 script
                 {
-                    scpfunctions.TransferFile(env.publicTestIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
-                    scpfunctions.TransferFile(env.publicTestIp,"./flask/prometheusconfig.yml",env.SSHKEYLOCATION)
-                    scpfunctions.TransferFile(env.publicProdIp,"./flask/docker-compose.yml",env.SSHKEYLOCATION)
-                    scpfunctions.TransferFile(env.publicProdIp,"./flask/prometheusconfig.yml",env.SSHKEYLOCATION)
+                    scpfunctions.TransferFile(env.publicTestIp,"./${env.GITROOTFOLDER}/docker-compose-test.yml",env.SSHKEYLOCATION)
+                    scpfunctions.TransferFile(env.publicTestIp,"./${env.GITROOTFOLDER}/prometheusconfig.yml",env.SSHKEYLOCATION)
+                    scpfunctions.TransferFile(env.publicProdIp,"./${env.GITROOTFOLDER}/docker-compose-prod.yml",env.SSHKEYLOCATION)
+                    scpfunctions.TransferFile(env.publicProdIp,"./${env.GITROOTFOLDER}/prometheusconfig.yml",env.SSHKEYLOCATION)
                 }
             }
         }
@@ -228,8 +244,8 @@ pipeline
                 script
                 {
                     
-                    dockerfunctions.PullDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
-                    dockerfunctions.StartDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
+                    dockerfunctions.PullDockerCompose(env.publicTestIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-test.yml")
+                    dockerfunctions.StartDockerCompose(env.publicTestIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-test.yml")
                 }
             }
         }
@@ -265,8 +281,8 @@ pipeline
             {
                 script
                 {
-                    dockerfunctions.StopDockerCompose(env.publicTestIp,env.SSHKEYLOCATION)
-                    dockerfunctions.cleanDockerContainers(env.publicTestIp,env.SSHKEYLOCATION)
+                    dockerfunctions.StopDockerCompose(env.publicTestIp,env.SSHKEYLOCATION,"./docker-compose-test.yml")
+                    dockerfunctions.cleanDockerContainersAndImages(env.publicTestIp,env.SSHKEYLOCATION)
                     awsfunctions.closeInstance(env.instanceTestId)
                 }
             }
@@ -274,6 +290,8 @@ pipeline
 
 
         
+
+
         stage('Deployment') 
         {
             when 
@@ -287,9 +305,24 @@ pipeline
             {
                 script
                 {
-                    dockerfunctions.PullDockerCompose(env.publicProdIp,env.SSHKEYLOCATION)
-                    dockerfunctions.StartDockerCompose(env.publicProdIp,env.SSHKEYLOCATION)
-                    dockerfunctions.cleanDockerContainers(env.publicProdIp,env.SSHKEYLOCATION)
+                    def userInput = input(
+                        id: 'deployConfirmation',
+                        message: 'Do you want to proceed with deployment?',
+                        parameters: [
+                            [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Proceed with deployment?', name: 'deploy']
+                        ],
+                        timeout: 5 * 60, // 5 minutes in seconds
+                        submitter: 'user'
+                    )
+                    
+                    if (userInput.deploy) {
+                        dockerfunctions.PullDockerCompose(env.publicProdIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-prod.yml")
+                        dockerfunctions.StartDockerCompose(env.publicProdIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-prod.yml")
+                        dockerfunctions.cleanDockerContainersAndImages(env.publicProdIp,env.SSHKEYLOCATION)
+                    } else {
+                        echo "Deployment skipped by user."
+                        currentBuild.result = 'SUCCESS'
+                    }
                 }
             }
         }

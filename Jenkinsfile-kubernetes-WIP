@@ -192,12 +192,17 @@ pipeline
                     // If there are relevant changes detected in the source code, the images will also be pushed to DockerHub
                     parallel(
                         "Build-create dockerFlask image and push": {
-                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERFLASKIMAGE, "${env.GITROOTFOLDER}/${env.FLASKBUILDFOLDER}/")
+                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERFLASKIMAGE, env.GITROOTFOLDER, env.FLASKBUILDFOLDER)
                         },
                         "Build-create dockerDB image and push": {
-                            dockerfunctions.BuildCheckAndPush(env.DOCKERDBIMAGE, "${env.GITROOTFOLDER}/${env.DBBUILDFOLDER}/")
+                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERDBIMAGE, env.GITROOTFOLDER, env.DBBUILDFOLDER)
                         }
                     )
+
+                     // Update the default value of the RELEVANTDOCKERTAG parameter
+                    if (env.RELEVANT_DOCKER_TAG) {
+                        updateJobParameters(defaults: [string(name: 'RELEVANTDOCKERTAG', value: env.RELEVANT_DOCKER_TAG)])
+                    }
                 }
             }
         }

@@ -41,6 +41,20 @@ pipeline
     
     stages 
     {
+
+        stage('Random Echo') 
+        {
+            steps 
+            {
+                script 
+                {   
+                    echo "1"
+                    echo "${env.RELEVANT_DOCKER_TAG}"
+                    echo "2"
+                    echo "${params.RELEVANTDOCKERTAG}"
+                }
+            }
+        }
         
         stage('Changes Check') 
         {
@@ -166,11 +180,6 @@ pipeline
                             dockerfunctions.BuildCheckAndPushV2(env.DOCKERDBIMAGE, env.GITROOTFOLDER, env.DBBUILDFOLDER)
                         }
                     )
-
-                    // Update the default value of the RELEVANTDOCKERTAG parameter
-                    if (env.RELEVANT_DOCKER_TAG) {
-                        updateJobParameters(defaults: [string(name: 'RELEVANTDOCKERTAG', value: env.RELEVANT_DOCKER_TAG)])
-                    }
                 }
             }
         }

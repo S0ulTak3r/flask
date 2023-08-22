@@ -2,7 +2,7 @@ version: '3'
 
 services:
   web:
-    image: s0ultak3r/dockerflask:${env.RELEVANT_DOCKER_TAG}
+    image: s0ultak3r/dockerflask:$RELEVANT_DOCKER_TAG
     ports:
       - "5000:5000"
     depends_on:
@@ -14,7 +14,7 @@ services:
       - MYSQL_DATABASE=flask_db
     restart: always
   db:
-    image: s0ultak3r/dockerdb:${env.RELEVANT_DOCKER_TAG}
+    image: s0ultak3r/dockerdb:$RELEVANT_DOCKER_TAG
     environment:
       - MYSQL_ROOT_PASSWORD=password
     volumes:

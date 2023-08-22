@@ -318,7 +318,7 @@ pipeline
                         ]
                     )
 
-                    if (userInput == 'true') {
+                    if (userInput) {
                         dockerfunctions.cleanDockerContainersAndImages(env.publicProdIp,env.SSHKEYLOCATION)
                         dockerfunctions.PullDockerCompose(env.publicProdIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-prod.yml")
                         dockerfunctions.StartDockerCompose(env.publicProdIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-prod.yml")

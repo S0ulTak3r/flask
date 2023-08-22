@@ -8,6 +8,6 @@ ENV MYSQL_DATABASE flask_db
 ENV MYSQL_DATA_DIR /var/lib/mysql-data/mysql
 
 # Add the content of the sql-scripts/ directory to your image
-# All scripsts in docker-entrypoint-initdb.d/ are automatically
+# All scripssts in docker-entrypoint-initdb.d/ are automatically
 # executed during container startup
 COPY ./sql-scripts/ /docker-entrypoint-initdb.d/

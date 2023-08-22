@@ -48,7 +48,7 @@ pipeline
             {
                 script 
                 {
-                    pipelinefunctions.checkChanges()
+                    pipelinefunctions.checkChanges("Jenkinsfile-dockercompose2")
                 }
             }
         }

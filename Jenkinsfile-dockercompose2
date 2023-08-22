@@ -97,7 +97,7 @@ pipeline
                 script
                 {
                     // Clone the repository
-                    gitfunctions.clonegit(env.GITURL, 'master')
+                    gitfunctions.clonegit(env.GITURL, 'main')
                     
                     // Download and unzip the unity build
                     sh "aws s3 cp s3://daniel-sela/unity-build.zip unity-build.zip"

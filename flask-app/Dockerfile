@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     gcc \
     default-libmysqlclient-dev
 
-# Copy alaaaals sthe files to the container
+# Copy alaaaalss sthe files to the container
 COPY . .
 
 COPY ./Static/UnityBuild /usr/src/app/Static/UnityBuild

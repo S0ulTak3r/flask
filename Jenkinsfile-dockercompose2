@@ -175,6 +175,8 @@ pipeline
                     
                     // Build Docker image for the database and push to DockerHub
                     dockerfunctions.BuildCheckAndPushV2(env.DOCKERDBIMAGE, env.GITROOTFOLDER, env.DBBUILDFOLDER)
+
+                    echo "env.RELEVANT_DOCKER_TAG: ${env.RELEVANT_DOCKER_TAG}"
                 }
             }
         }

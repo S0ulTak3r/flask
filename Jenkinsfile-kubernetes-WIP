@@ -84,12 +84,18 @@ pipeline
             {
                 script 
                 {
-                    // Clean up the Jenkins workspace to remove any old data or artifacts
+                    // Clean up Jenkins workspace
                     pipelinefunctions.cleanupWorkspace()
-                    
-                    // Remove old Docker images to free up space and ensure only the latest images are used
-                    dockerfunctions.deleteImageVersion(env.DOCKERFLASKIMAGE)
-                    dockerfunctions.deleteImageVersion(env.DOCKERDBIMAGE)
+
+                    // Prune docker containers
+                    dockerfunctions.pruneDockerContainers()
+
+                    // Prune docker images
+                    dockerfunctions.pruneDockerImages()
+
+                    // Retain only the latest versions of the Docker images
+                    dockerfunctions.retainLatestImageVersionOnly(env.DOCKERFLASKIMAGE)
+                    dockerfunctions.retainLatestImageVersionOnly(env.DOCKERDBIMAGE)
                 }
             }
         }
@@ -192,17 +198,12 @@ pipeline
                     // If there are relevant changes detected in the source code, the images will also be pushed to DockerHub
                     parallel(
                         "Build-create dockerFlask image and push": {
-                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERFLASKIMAGE, env.GITROOTFOLDER, env.FLASKBUILDFOLDER)
+                            dockerfunctions.BuilAndPush(env.DOCKERFLASKIMAGE, "./${env.GITROOTFOLDER}/${env.FLASKBUILDFOLDER}")
                         },
                         "Build-create dockerDB image and push": {
-                            dockerfunctions.BuildCheckAndPushV2(env.DOCKERDBIMAGE, env.GITROOTFOLDER, env.DBBUILDFOLDER)
+                            dockerfunctions.BuildAndPush(env.DOCKERDBIMAGE, "./${env.GITROOTFOLDER}/${env.DBBUILDFOLDER}")
                         }
                     )
-
-                     // Update the default value of the RELEVANTDOCKERTAG parameter
-                    if (env.RELEVANT_DOCKER_TAG) {
-                        updateJobParameters(defaults: [string(name: 'RELEVANTDOCKERTAG', value: env.RELEVANT_DOCKER_TAG)])
-                    }
                 }
             }
         }

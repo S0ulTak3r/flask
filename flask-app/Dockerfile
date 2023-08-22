@@ -18,7 +18,7 @@ COPY ./Static/UnityBuild /usr/src/app/Static/UnityBuild
 RUN pip install --no-cache-dir --default-timeout=1000 -r requirements.txt
 
 
-# Tell the port number the container should expose
+# Tell the poaaart number the container should expose
 EXPOSE 5000
 
 # Run the command

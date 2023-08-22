@@ -314,13 +314,11 @@ pipeline
                         id: 'deployConfirmation',
                         message: 'Do you want to proceed with deployment?',
                         parameters: [
-                            [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Proceed with deployment?', name: 'deploy']
-                        ],
-                        timeout: 5 * 60, // 5 minutes in seconds
-                        submitter: 'user'
+                            booleanParam(defaultValue: false, description: 'Proceed with deployment?', name: 'deploy')
+                        ]
                     )
 
-                    if (userInput.deploy) {
+                    if (userInput == 'true') {
                         dockerfunctions.cleanDockerContainersAndImages(env.publicProdIp,env.SSHKEYLOCATION)
                         dockerfunctions.PullDockerCompose(env.publicProdIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-prod.yml")
                         dockerfunctions.StartDockerCompose(env.publicProdIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-prod.yml")

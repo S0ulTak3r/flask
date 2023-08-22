@@ -113,7 +113,7 @@ pipeline
                 script 
                 {
                     // Clone the latest version of the source code from the git repository
-                    gitfunctions.clonegit(env.GITURL)
+                    gitfunctions.clonegit(env.GITURL, 'main')
                     
                     // Download the latest Unity build from an S3 bucket
                     sh "aws s3 cp s3://daniel-sela/unity-build.zip unity-build.zip"

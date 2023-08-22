@@ -483,7 +483,6 @@ span
 }
 .row
 {
-    border: blue 1px solid; /* Debugging purpose? */
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr auto;

@@ -323,11 +323,11 @@ pipeline
                         timeout: 5 * 60, // 5 minutes in seconds
                         submitter: 'user'
                     )
-                    
+
                     if (userInput.deploy) {
+                        dockerfunctions.cleanDockerContainersAndImages(env.publicProdIp,env.SSHKEYLOCATION)
                         dockerfunctions.PullDockerCompose(env.publicProdIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-prod.yml")
                         dockerfunctions.StartDockerCompose(env.publicProdIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-prod.yml")
-                        dockerfunctions.cleanDockerContainersAndImages(env.publicProdIp,env.SSHKEYLOCATION)
                     } else {
                         echo "Deployment skipped by user."
                         currentBuild.result = 'SUCCESS'

@@ -94,7 +94,7 @@ body::after {
     height: 100%;
     background: var(--white-color);
     z-index: 10;
-    animation: wipe-transition 4s 5s forwards;
+    animation: wipe-transition 4s 8s forwards;
 }
 
 .welcome {
@@ -105,7 +105,7 @@ body::after {
 }
 
 .site-title {
-    animation: site-title-animation 3s forwards;
+    animation: site-title-animation 4s forwards;
     font-size: 100px;
     color: var(--text-color);
     text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);

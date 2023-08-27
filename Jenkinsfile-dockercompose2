@@ -83,7 +83,7 @@ pipeline
             {
                 script 
                 {
-                    pipelinefunctions.checkChanges("Jenkinsfile-dockercompose2")
+                    pipelinefunctions.checkChanges("Jenkinsfile-dockercompose22")
                 }
             }
         }
@@ -149,7 +149,9 @@ pipeline
             {
                 script 
                 {
-                    def versions = readJSON file: "./${env.GITROOTFOLDER}/VersionControl/versions.json"
+                    def jsonText = readFile("${env.GITROOTFOLDER}/VersionControl/versions.json")
+                    def jsonSlurper = new groovy.json.JsonSlurper()
+                    def versions = jsonSlurper.parseText(jsonText)
                     
                     if (params.RELEVANTDOCKERTAGFLASK == '') 
                     {
@@ -169,11 +171,12 @@ pipeline
                         env.RELEVANT_DOCKER_TAGDB = params.RELEVANTDOCKERTAGDB
                     }
 
-                    echo "Deploying Flask version: ${env.FLASK_VERSION}"
-                    echo "Deploying DB version: ${env.DB_VERSION}"
+                    echo "Deploying Flask version: ${env.RELEVANT_DOCKER_TAGFLASK}"  // Updated variable reference
+                    echo "Deploying DB version: ${env.RELEVANT_DOCKER_TAGDB}"        // Updated variable reference
                 }
             }
         }
+
         
         stage('Install Dependencies') 
         {

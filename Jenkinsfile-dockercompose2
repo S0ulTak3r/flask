@@ -152,7 +152,10 @@ pipeline
                     def jsonText = readFile("./${env.GITROOTFOLDER}/VersionControl/versions.json")
                     echo "JSON Content: $jsonText"
                     def jsonSlurper = new groovy.json.JsonSlurper()
+                    echo "jsonSlurper: $jsonSlurper"
                     def versions = jsonSlurper.parseText(jsonText)
+
+                    echo "Flask version: ${versions.flask}"
                     
                     if (params.RELEVANTDOCKERTAGFLASK == '') 
                     {

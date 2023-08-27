@@ -149,7 +149,7 @@ pipeline
             {
                 script 
                 {
-                    def jsonText = readFile("${env.GITROOTFOLDER}/VersionControl/versions.json")
+                    def jsonText = readFile("./${env.GITROOTFOLDER}/VersionControl/versions.json")
                     def jsonSlurper = new groovy.json.JsonSlurper()
                     def versions = jsonSlurper.parseText(jsonText)
                     

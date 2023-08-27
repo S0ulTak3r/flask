@@ -49,7 +49,7 @@ pipeline
             {
                 script 
                 {
-                    if (env.RELEVANT_DOCKER_TAGFLASK == '' && env.RELEVANT_DOCKER_TAGDB == '') 
+                    if (env.RELEVANT_DOCKER_TAGFLASK == null && env.RELEVANT_DOCKER_TAGDB == null ) 
                     {
                         echo "No version specified for rollback/upgrade, getting latest versionS from file"
                     }

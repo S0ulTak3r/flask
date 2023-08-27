@@ -353,9 +353,8 @@ pipeline
             {
                 script
                 {
-                    
-                    dockerfunctions.PullDockerCompose(env.publicTestIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-test.yml")
-                    dockerfunctions.StartDockerCompose(env.publicTestIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-test.yml")
+                    dockerfunctions.PullDockerCompose(env.publicTestIp, env.SSHKEYLOCATION, env.RELEVANT_DOCKER_TAGFLASK, env.RELEVANT_DOCKER_TAGDB, "./docker-compose-test.yml")
+                    dockerfunctions.StartDockerCompose(env.publicTestIp, env.SSHKEYLOCATION, env.RELEVANT_DOCKER_TAGFLASK, env.RELEVANT_DOCKER_TAGDB, "./docker-compose-test.yml")
                 }
             }
         }

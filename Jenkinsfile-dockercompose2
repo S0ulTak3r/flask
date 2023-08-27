@@ -270,8 +270,14 @@ pipeline
 
         stage("random")
         {
-            echo "env.RELEVANT_DOCKER_TAGFLASK: ${env.RELEVANT_DOCKER_TAGFLASK}"
-            echo "env.RELEVANT_DOCKER_TAGDB: ${env.RELEVANT_DOCKER_TAGDB}"
+            steps
+            {
+                script
+                {
+                    echo "env.RELEVANT_DOCKER_TAGFLASK: ${env.RELEVANT_DOCKER_TAGFLASK}"
+                    echo "env.RELEVANT_DOCKER_TAGDB: ${env.RELEVANT_DOCKER_TAGDB}"
+                }
+            }
         }
 
 

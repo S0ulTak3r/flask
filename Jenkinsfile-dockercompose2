@@ -449,8 +449,9 @@ pipeline
                         def jsonString = groovy.json.JsonOutput.toJson(versions)
 
                         sh """
-                            echo '${jsonString}' | jq '.' > ${env.GITROOTFOLDER}/VersionControl/versions.json
+                            echo '${jsonString}' | /usr/local/bin/jq '.' > ${env.GITROOTFOLDER}/VersionControl/versions.json
                         """
+
 
 
 

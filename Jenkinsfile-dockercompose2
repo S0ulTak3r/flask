@@ -454,6 +454,25 @@ pipeline
                         dockerfunctions.cleanDockerContainersAndImages(env.publicProdIp,env.SSHKEYLOCATION)
                         dockerfunctions.PullDockerCompose(env.publicProdIp, env.SSHKEYLOCATION, env.RELEVANT_DOCKER_TAGFLASK, env.RELEVANT_DOCKER_TAGDB, "./docker-compose-prod.yml")
                         dockerfunctions.StartDockerCompose(env.publicProdIp, env.SSHKEYLOCATION, env.RELEVANT_DOCKER_TAGFLASK, env.RELEVANT_DOCKER_TAGDB, "./docker-compose-prod.yml")
+
+                        // Update the versions.json file
+                        def jsonText = readFile("./${env.GITROOTFOLDER}/VersionControl/versions.json")
+                        def jsonSlurper = new groovy.json.JsonSlurper()
+                        def versions = jsonSlurper.parseText(jsonText)
+
+                        versions.flask = env.RELEVANT_DOCKER_TAGFLASK
+                        versions.database = env.RELEVANT_DOCKER_TAGDB
+
+                        def updatedJson = new groovy.json.JsonBuilder(versions).toPrettyString()
+                        writeFile(file: "${env.GITROOTFOLDER}/VersionControl/versions.json", text: updatedJson)
+
+                        Optional: Commit and push the change to the repository
+                        sh """
+                            cd ${env.GITROOTFOLDER}/
+                            git add ./VersionControl/versions.json
+                            git commit -m 'Update versions after successful deployment'
+                            git push origin main
+                        """
                     } 
                     else 
                     {
@@ -463,6 +482,7 @@ pipeline
                 }
             }
         }
+
 
     }
 }

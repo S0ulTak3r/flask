@@ -440,8 +440,10 @@ pipeline
                         versions.flask = env.RELEVANT_DOCKER_TAGFLASK
                         versions.database = env.RELEVANT_DOCKER_TAGDB
 
-                        def updatedJson = new groovy.json.JsonBuilder(versions).toPrettyString()
-                        writeFile(file: "${env.GITROOTFOLDER}/VersionControl/versions.json", text: updatedJson)
+                        sh """
+                            echo '${versions}' | jq '.' > ${env.GITROOTFOLDER}/VersionControl/versions.json
+                        """
+
 
                         Optional: Commit and push the change to the repository
                         sh """
@@ -459,6 +461,7 @@ pipeline
                 }
             }
         }
+
 
 
     }

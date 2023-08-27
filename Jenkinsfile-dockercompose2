@@ -157,7 +157,7 @@ pipeline
 
                     echo "Flask version: ${versions.flask}"
                     
-                    if (params.RELEVANTDOCKERTAGFLASK == '') 
+                    if (params.RELEVANTDOCKERTAGFLASK == null) 
                     {
                         env.RELEVANT_DOCKER_TAGFLASK = "${versions.flask}"
                     } 
@@ -166,7 +166,7 @@ pipeline
                         env.RELEVANT_DOCKER_TAGFLASK = params.RELEVANTDOCKERTAGFLASK
                     }
 
-                    if (params.RELEVANTDOCKERTAGDB == '') 
+                    if (params.RELEVANTDOCKERTAGDB == null) 
                     {
                         env.RELEVANT_DOCKER_TAGDB = "${versions.database}"
                     } 

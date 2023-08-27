@@ -31,7 +31,8 @@ pipeline
         PRODCONTEXT = "${params.PRODCONTEXT}"
         PRODHELMRELEASE = "${params.PRODHELMRELEASE}"
         HELMPACKAGENAME = "${params.HELMPACKAGENAME}"
-        RELEVANT_DOCKER_TAG = "${params.RELEVANTDOCKERTAG}"
+        RELEVANT_DOCKER_TAGFLASK = "${params.RELEVANTDOCKERTAGFLASK}" //
+        RELEVANT_DOCKER_TAGDB = "${params.RELEVANTDOCKERTAGDB}" //
     }
 
     triggers 
@@ -42,16 +43,36 @@ pipeline
     stages 
     {
 
-        stage('Random Echo') 
+        stage('Version Check') 
         {
             steps 
             {
                 script 
-                {   
-                    echo "1"
-                    echo "${env.RELEVANT_DOCKER_TAG}"
-                    echo "2"
-                    echo "${params.RELEVANTDOCKERTAG}"
+                {
+                    if (env.RELEVANT_DOCKER_TAGFLASK == '' && env.RELEVANT_DOCKER_TAGDB == '') 
+                    {
+                        echo "No version specified for rollback/upgrade, getting latest versionS from file"
+                    }
+                    else
+                    {
+                        echo "Version specified for rollback/upgrade"
+                        if (env.RELEVANT_DOCKER_TAGFLASK != '')
+                        {
+                            echo "if Deploying version for flask: ${env.RELEVANT_DOCKER_TAGFLASK}"
+                        }
+                        else
+                        {
+                            echo "Deployment Not Changed For Flask, Will Use Latest Version From File"
+                        }
+                        if (env.RELEVANT_DOCKER_TAGDB != '')
+                        {
+                            echo "if Deploying version for db: ${env.RELEVANT_DOCKER_TAGDB}"
+                        }
+                        else
+                        {
+                            echo "Deployment Not Changed For DB, Will Use Latest Version From File"
+                        }
+                    } 
                 }
             }
         }
@@ -120,6 +141,39 @@ pipeline
             }
         }
 
+
+
+        stage('Setup') 
+        {
+            steps 
+            {
+                script 
+                {
+                    def versions = readJSON file: "./${env.GITROOTFOLDER}/VersionControl/versions.json"
+                    
+                    if (params.RELEVANTDOCKERTAGFLASK == '') 
+                    {
+                        env.RELEVANT_DOCKER_TAGFLASK = versions.flask
+                    } 
+                    else 
+                    {
+                        env.RELEVANT_DOCKER_TAGFLASK = params.RELEVANTDOCKERTAGFLASK
+                    }
+
+                    if (params.RELEVANTDOCKERTAGDB == '') 
+                    {
+                        env.RELEVANT_DOCKER_TAGDB = versions.database
+                    } 
+                    else 
+                    {
+                        env.RELEVANT_DOCKER_TAGDB = params.RELEVANTDOCKERTAGDB
+                    }
+
+                    echo "Deploying Flask version: ${env.FLASK_VERSION}"
+                    echo "Deploying DB version: ${env.DB_VERSION}"
+                }
+            }
+        }
         
         stage('Install Dependencies') 
         {
@@ -159,7 +213,7 @@ pipeline
         }
 
         // Build Docker images for the Flask application and the database, and push them to DockerHub
-        stage('Sequential Docker Build and Push') 
+        stage('Parallel Docker Build and Push') 
         {
             when 
             {
@@ -170,24 +224,92 @@ pipeline
             {
                 script 
                 {
-                    // Build Docker image for the Flask application and push to DockerHub
-                    dockerfunctions.BuildCheckAndPushV2(env.DOCKERFLASKIMAGE, env.GITROOTFOLDER, env.FLASKBUILDFOLDER)
+                    // Define parallel stages
+                    parallel 
+                    {
+                        stage('Build and Push Flask Docker Image') 
+                        {
+                            steps 
+                            {
+                                script 
+                                {
+                                    // Build Docker image for the Flask application and push to DockerHub
+                                    def newFlaskTag = dockerfunctions.BuildCheckAndPushV2(env.DOCKERFLASKIMAGE, env.GITROOTFOLDER, env.FLASKBUILDFOLDER)
+                                    if (newFlaskTag != null) 
+                                    {
+                                        def userInput = timeout(time: 5, unit: 'MINUTES') {
+                                            input(
+                                                id: 'deployConfirmation',
+                                                message: 'new flask tag detected, deploy this if all test succeed?',
+                                                parameters: [
+                                                    booleanParam(defaultValue: false, description: 'Proceed with deployment?', name: 'Yes')
+                                                ]
+                                            )
+                                        }
+                                        if (userInput)
+                                        {
+                                            echo "updating production tag to ${newFlaskTag}"
+                                            env.RELEVANT_DOCKER_TAGFLASK = newFlaskTag
+                                        }
+                                        else
+                                        {
+                                            echo "production tag not updated to latest build version"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        stage('Build and Push DB Docker Image') 
+                        {
+                            steps 
+                            {
+                                script 
+                                {
+                                    // Build Docker image for the database and push to DockerHub
+                                    def newDBTag = dockerfunctions.BuildCheckAndPushV2(env.DOCKERDBIMAGE, env.GITROOTFOLDER, env.DBBUILDFOLDER)
+                                    if (newDBTag != null) 
+                                    {
+                                        def userInput = timeout(time: 5, unit: 'MINUTES') {
+                                            input(
+                                                id: 'deployConfirmation',
+                                                message: 'new db tag detected, deploy this if all test succeed?',
+                                                parameters: [
+                                                    booleanParam(defaultValue: false, description: 'Proceed with deployment?', name: 'Yes')
+                                                ]
+                                            )
+                                        }
+                                        if (userInput)
+                                        {
+                                            echo "updating production tag to ${newDBTag}"
+                                            env.RELEVANT_DOCKER_TAGDB = newDBTag
+                                        }
+                                        else
+                                        {
+                                            echo "production tag not updated to latest build version"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     
-                    // Build Docker image for the database and push to DockerHub
-                    dockerfunctions.BuildCheckAndPushV2(env.DOCKERDBIMAGE, env.GITROOTFOLDER, env.DBBUILDFOLDER)
-
-                    echo "env.RELEVANT_DOCKER_TAG: ${env.RELEVANT_DOCKER_TAG}"
                 }
             }
         }
 
 
-        stage('Get Test+Prod Instance Details') {
-            when {
+
+        stage('Get Test+Prod Instance Details') 
+        {
+            when 
+            {
                 expression { return env.NO_CHANGES != "true" }
             }
-            steps {
-                script {
+            steps 
+            {
+                script 
+                {
                     def instanceDetails = awsfunctions.GetInstanceDetails()
                     env.instanceTestId = instanceDetails.testInstance
                     env.publicTestIp = instanceDetails.testIp
@@ -312,24 +434,32 @@ pipeline
             {
                 script
                 {
-                    def userInput = input(
-                        id: 'deployConfirmation',
-                        message: 'Do you want to proceed with deployment?',
-                        parameters: [
-                            booleanParam(defaultValue: false, description: 'Proceed with deployment?', name: 'deploy')
-                        ]
-                    )
+                    def deployMessage = "Do you want to proceed with deployment?\nFlask Version: ${env.RELEVANT_DOCKER_TAGFLASK}\nDB Version: ${env.RELEVANT_DOCKER_TAGDB}"
 
-                    if (userInput) {
+                    def userInput = timeout(time: 5, unit: 'MINUTES') {
+                        input(
+                            id: 'deployConfirmation',
+                            message: deployMessage,
+                            parameters: [
+                                booleanParam(defaultValue: false, description: 'Proceed with deployment?', name: 'deploy')
+                            ]
+                        )
+                    }
+
+                    if (userInput) 
+                    {
                         dockerfunctions.cleanDockerContainersAndImages(env.publicProdIp,env.SSHKEYLOCATION)
-                        dockerfunctions.PullDockerCompose(env.publicProdIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-prod.yml")
-                        dockerfunctions.StartDockerCompose(env.publicProdIp,env.SSHKEYLOCATION,env.RELEVANT_DOCKER_TAG,"./docker-compose-prod.yml")
-                    } else {
+                        dockerfunctions.PullDockerCompose(env.publicProdIp, env.SSHKEYLOCATION, env.RELEVANT_DOCKER_TAGFLASK, env.RELEVANT_DOCKER_TAGDB, "./docker-compose-prod.yml")
+                        dockerfunctions.StartDockerCompose(env.publicProdIp, env.SSHKEYLOCATION, env.RELEVANT_DOCKER_TAGFLASK, env.RELEVANT_DOCKER_TAGDB, "./docker-compose-prod.yml")
+                    } 
+                    else 
+                    {
                         echo "Deployment skipped by user."
                         currentBuild.result = 'SUCCESS'
                     }
                 }
             }
         }
+
     }
 }

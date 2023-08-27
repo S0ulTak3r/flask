@@ -440,8 +440,7 @@ pipeline
 
                         // Update the versions.json file
                         def jsonText = readFile("./${env.GITROOTFOLDER}/VersionControl/versions.json")
-                        def jsonSlurper = new groovy.json.JsonSlurper()
-                        def versions = jsonSlurper.parseText(jsonText)
+                        def versions = groovy.json.JsonSlurper().parseText(jsonText)
 
                         versions.flask = env.RELEVANT_DOCKER_TAGFLASK
                         versions.database = env.RELEVANT_DOCKER_TAGDB
@@ -456,7 +455,7 @@ pipeline
 
 
 
-                        Optional: Commit and push the change to the repository
+                        //Optional: Commit and push the change to the repository
                         sh """
                             cd ${env.GITROOTFOLDER}/
                             git add ./VersionControl/versions.json

@@ -159,7 +159,7 @@ pipeline
                     
                     if (params.RELEVANTDOCKERTAGFLASK == '') 
                     {
-                        env.RELEVANT_DOCKER_TAGFLASK = versions.flask
+                        env.RELEVANT_DOCKER_TAGFLASK = "${versions.flask}"
                     } 
                     else 
                     {
@@ -168,7 +168,7 @@ pipeline
 
                     if (params.RELEVANTDOCKERTAGDB == '') 
                     {
-                        env.RELEVANT_DOCKER_TAGDB = versions.database
+                        env.RELEVANT_DOCKER_TAGDB = "${versions.database}"
                     } 
                     else 
                     {

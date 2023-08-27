@@ -218,92 +218,61 @@ pipeline
             }
         }
 
-        // Build Docker images for the Flask application and the database, and push them to DockerHub
-        stage('Parallel Docker Build and Push') 
-        {
-            when 
-            {
-                // Only run this stage if there have been changes to the repository
+        stage('Parallel Docker Build and Push') {
+            when {
                 expression { return env.NO_CHANGES != "true" }
             }
-            steps 
-            {
-                script 
-                {
-                    // Define parallel stages
-                    parallel 
-                    {
-                        stage('Build and Push Flask Docker Image') 
-                        {
-                            steps 
-                            {
-                                script 
-                                {
-                                    // Build Docker image for the Flask application and push to DockerHub
-                                    def newFlaskTag = dockerfunctions.BuildCheckAndPushV2(env.DOCKERFLASKIMAGE, env.GITROOTFOLDER, env.FLASKBUILDFOLDER)
-                                    if (newFlaskTag != null) 
-                                    {
-                                        def userInput = timeout(time: 5, unit: 'MINUTES') {
-                                            input(
-                                                id: 'deployConfirmation',
-                                                message: 'new flask tag detected, deploy this if all test succeed?',
-                                                parameters: [
-                                                    booleanParam(defaultValue: false, description: 'Proceed with deployment?', name: 'Yes')
-                                                ]
-                                            )
-                                        }
-                                        if (userInput)
-                                        {
-                                            echo "updating production tag to ${newFlaskTag}"
-                                            env.RELEVANT_DOCKER_TAGFLASK = newFlaskTag
-                                        }
-                                        else
-                                        {
-                                            echo "production tag not updated to latest build version"
-                                        }
-                                    }
+            steps {
+                script {
+                    parallel(
+                        "Build and Push Flask Docker Image": {
+                            // Build Docker image for the Flask application and push to DockerHub
+                            def newFlaskTag = dockerfunctions.BuildCheckAndPushV2(env.DOCKERFLASKIMAGE, env.GITROOTFOLDER, env.FLASKBUILDFOLDER)
+                            if (newFlaskTag != null) {
+                                def userInput = timeout(time: 5, unit: 'MINUTES') {
+                                    input(
+                                        id: 'deployConfirmation',
+                                        message: 'new flask tag detected, deploy this if all test succeed?',
+                                        parameters: [ booleanParam(defaultValue: false, description: 'Proceed with deployment?', name: 'Yes') ]
+                                    )
+                                }
+                                if (userInput) {
+                                    echo "updating production tag to ${newFlaskTag}"
+                                    env.RELEVANT_DOCKER_TAGFLASK = newFlaskTag
+                                } else {
+                                    echo "production tag not updated to latest build version"
+                                }
+                            }
+                        },
+                        "Build and Push DB Docker Image": {
+                            // Build Docker image for the database and push to DockerHub
+                            def newDBTag = dockerfunctions.BuildCheckAndPushV2(env.DOCKERDBIMAGE, env.GITROOTFOLDER, env.DBBUILDFOLDER)
+                            if (newDBTag != null) {
+                                def userInput = timeout(time: 5, unit: 'MINUTES') {
+                                    input(
+                                        id: 'deployConfirmation',
+                                        message: 'new db tag detected, deploy this if all test succeed?',
+                                        parameters: [ booleanParam(defaultValue: false, description: 'Proceed with deployment?', name: 'Yes') ]
+                                    )
+                                }
+                                if (userInput) {
+                                    echo "updating production tag to ${newDBTag}"
+                                    env.RELEVANT_DOCKER_TAGDB = newDBTag
+                                } else {
+                                    echo "production tag not updated to latest build version"
                                 }
                             }
                         }
-                        
-                        stage('Build and Push DB Docker Image') 
-                        {
-                            steps 
-                            {
-                                script 
-                                {
-                                    // Build Docker image for the database and push to DockerHub
-                                    def newDBTag = dockerfunctions.BuildCheckAndPushV2(env.DOCKERDBIMAGE, env.GITROOTFOLDER, env.DBBUILDFOLDER)
-                                    if (newDBTag != null) 
-                                    {
-                                        def userInput = timeout(time: 5, unit: 'MINUTES') {
-                                            input(
-                                                id: 'deployConfirmation',
-                                                message: 'new db tag detected, deploy this if all test succeed?',
-                                                parameters: [
-                                                    booleanParam(defaultValue: false, description: 'Proceed with deployment?', name: 'Yes')
-                                                ]
-                                            )
-                                        }
-                                        if (userInput)
-                                        {
-                                            echo "updating production tag to ${newDBTag}"
-                                            env.RELEVANT_DOCKER_TAGDB = newDBTag
-                                        }
-                                        else
-                                        {
-                                            echo "production tag not updated to latest build version"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
+                    )
                 }
             }
         }
 
+        stage("random")
+        {
+            echo "env.RELEVANT_DOCKER_TAGFLASK: ${env.RELEVANT_DOCKER_TAGFLASK}"
+            echo "env.RELEVANT_DOCKER_TAGDB: ${env.RELEVANT_DOCKER_TAGDB}"
+        }
 
 
         stage('Get Test+Prod Instance Details') 

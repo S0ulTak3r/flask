@@ -1,7 +1,7 @@
 # Staaarst from a sbsase MySQL image
 FROM mysql:8.1.0
 
-# Add a database
+# Add a datasbase
 ENV MYSQL_DATABASE flask_db
 
 # Set the sMYSQL_DATAs_DIsR senvironment variable to our new data directory

@@ -47,7 +47,7 @@ pipeline
             {
                 script 
                 {
-                    if (params.RELEVANTDOCKERTAGDB == null && params.RELEVANTDOCKERTAGFLASK == null ) 
+                    if (params.RELEVANTDOCKERTAGDB == "" && params.RELEVANTDOCKERTAGFLASK == "" ) 
                     {
                         echo "No version specified for rollback/upgrade, getting latest versionS from file"
                     }
@@ -55,7 +55,7 @@ pipeline
                     {
                         
                         echo "Version specified for rollback/upgrade"
-                        if (params.RELEVANTDOCKERTAGFLASK != null)
+                        if (params.RELEVANTDOCKERTAGFLASK != "")
                         {
                             echo "if Deploying version for flask: ${params.RELEVANTDOCKERTAGFLASK}"
                         }
@@ -63,7 +63,7 @@ pipeline
                         {
                             echo "Deployment Not Changed For Flask, Will Use Latest Version From File"
                         }
-                        if (params.RELEVANTDOCKERTAGDB != null)
+                        if (params.RELEVANTDOCKERTAGDB != "")
                         {
                             echo "if Deploying version for db: ${params.RELEVANTDOCKERTAGDB}"
                         }
@@ -156,7 +156,7 @@ pipeline
 
                     echo "Flask version: ${versions.flask}"
                     
-                    if (params.RELEVANTDOCKERTAGFLASK == null) 
+                    if (params.RELEVANTDOCKERTAGFLASK == "") 
                     {
                         env.RELEVANT_DOCKER_TAGFLASK = "${versions.flask}"
                     } 
@@ -165,7 +165,7 @@ pipeline
                         env.RELEVANT_DOCKER_TAGFLASK = params.RELEVANTDOCKERTAGFLASK
                     }
 
-                    if (params.RELEVANTDOCKERTAGDB == null) 
+                    if (params.RELEVANTDOCKERTAGDB == "") 
                     {
                         env.RELEVANT_DOCKER_TAGDB = "${versions.database}"
                     } 

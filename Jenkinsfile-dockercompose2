@@ -53,6 +53,7 @@ pipeline
                     }
                     else
                     {
+                        
                         echo "Version specified for rollback/upgrade"
                         if (params.RELEVANTDOCKERTAGFLASK != null)
                         {
@@ -62,7 +63,7 @@ pipeline
                         {
                             echo "Deployment Not Changed For Flask, Will Use Latest Version From File"
                         }
-                        if (params.RELEVANTDOCKERTAGFDB != null)
+                        if (params.RELEVANTDOCKERTAGDB != null)
                         {
                             echo "if Deploying version for db: ${params.RELEVANTDOCKERTAGDB}"
                         }

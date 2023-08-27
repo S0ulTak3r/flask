@@ -31,8 +31,6 @@ pipeline
         PRODCONTEXT = "${params.PRODCONTEXT}"
         PRODHELMRELEASE = "${params.PRODHELMRELEASE}"
         HELMPACKAGENAME = "${params.HELMPACKAGENAME}"
-        RELEVANT_DOCKER_TAGFLASK = "${params.RELEVANTDOCKERTAGFLASK}" //
-        RELEVANT_DOCKER_TAGDB = "${params.RELEVANTDOCKERTAGDB}" //
     }
 
     triggers 
@@ -49,24 +47,24 @@ pipeline
             {
                 script 
                 {
-                    if (env.RELEVANT_DOCKER_TAGFLASK == null && env.RELEVANT_DOCKER_TAGDB == null ) 
+                    if (params.RELEVANTDOCKERTAGDB == null && params.RELEVANTDOCKERTAGFLASK == null ) 
                     {
                         echo "No version specified for rollback/upgrade, getting latest versionS from file"
                     }
                     else
                     {
                         echo "Version specified for rollback/upgrade"
-                        if (env.RELEVANT_DOCKER_TAGFLASK != '')
+                        if (params.RELEVANTDOCKERTAGFLASK != null)
                         {
-                            echo "if Deploying version for flask: ${env.RELEVANT_DOCKER_TAGFLASK}"
+                            echo "if Deploying version for flask: ${params.RELEVANTDOCKERTAGFLASK}"
                         }
                         else
                         {
                             echo "Deployment Not Changed For Flask, Will Use Latest Version From File"
                         }
-                        if (env.RELEVANT_DOCKER_TAGDB != '')
+                        if (params.RELEVANTDOCKERTAGFDB != null)
                         {
-                            echo "if Deploying version for db: ${env.RELEVANT_DOCKER_TAGDB}"
+                            echo "if Deploying version for db: ${params.RELEVANTDOCKERTAGDB}"
                         }
                         else
                         {

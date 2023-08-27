@@ -446,9 +446,12 @@ pipeline
                         versions.flask = env.RELEVANT_DOCKER_TAGFLASK
                         versions.database = env.RELEVANT_DOCKER_TAGDB
 
+                        def jsonString = groovy.json.JsonOutput.toJson(versions)
+
                         sh """
-                            echo '${versions}' | jq '.' > ${env.GITROOTFOLDER}/VersionControl/versions.json
+                            echo '${jsonString}' | jq '.' > ${env.GITROOTFOLDER}/VersionControl/versions.json
                         """
+
 
 
                         Optional: Commit and push the change to the repository

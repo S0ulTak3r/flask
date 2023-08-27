@@ -407,19 +407,14 @@ pipeline
         
 
 
-        stage('Deployment') 
-        {
-            when 
-            {
-                expression 
-                {
+        stage('Deployment') {
+            when {
+                expression {
                     return env.NO_CHANGES != "true"
                 }
             }
-            steps 
-            {
-                script
-                {
+            steps {
+                script {
                     def deployMessage = "Do you want to proceed with deployment?\nFlask Version: ${env.RELEVANT_DOCKER_TAGFLASK}\nDB Version: ${env.RELEVANT_DOCKER_TAGDB}"
 
                     def userInput = timeout(time: 5, unit: 'MINUTES') {
@@ -432,28 +427,30 @@ pipeline
                         )
                     }
 
-                    if (userInput) 
-                    {
+                    if (userInput) {
                         dockerfunctions.cleanDockerContainersAndImages(env.publicProdIp,env.SSHKEYLOCATION)
+                        dockerfunctions.StopDockerCompose(env.publicProdIp, env.SSHKEYLOCATION, "./docker-compose-prod.yml")
+                        dockerfunctions.retainLatestImageVersionOnlyRemote(env.DOCKERFLASKIMAGE, env.publicProdIp, env.SSHKEYLOCATION)
+                        dockerfunctions.retainLatestImageVersionOnlyRemote(env.DOCKERDBIMAGE, env.publicProdIp, env.SSHKEYLOCATION)
                         dockerfunctions.PullDockerCompose(env.publicProdIp, env.SSHKEYLOCATION, env.RELEVANT_DOCKER_TAGFLASK, env.RELEVANT_DOCKER_TAGDB, "./docker-compose-prod.yml")
                         dockerfunctions.StartDockerCompose(env.publicProdIp, env.SSHKEYLOCATION, env.RELEVANT_DOCKER_TAGFLASK, env.RELEVANT_DOCKER_TAGDB, "./docker-compose-prod.yml")
 
                         // Update the versions.json file
                         def jsonText = readFile("./${env.GITROOTFOLDER}/VersionControl/versions.json")
-                        def versions = groovy.json.JsonSlurper().parseText(jsonText)
+                        
+                        // Parse the JSON without using groovy.json directly
+                        def parser = new JsonSlurper()
+                        def versions = parser.parseText(jsonText)
 
                         versions.flask = env.RELEVANT_DOCKER_TAGFLASK
                         versions.database = env.RELEVANT_DOCKER_TAGDB
 
-                        def jsonString = groovy.json.JsonOutput.toJson(versions)
+                        // Convert the updated map back to a JSON string
+                        def jsonString = new JsonOutput().toJson(versions)
 
                         sh """
                             echo '${jsonString}' > ./${env.GITROOTFOLDER}/VersionControl/versions.json
                         """
-
-
-
-
 
                         //Optional: Commit and push the change to the repository
                         sh """
@@ -462,15 +459,14 @@ pipeline
                             git commit -m 'Update versions after successful deployment'
                             git push origin main
                         """
-                    } 
-                    else 
-                    {
+                    } else {
                         echo "Deployment skipped by user."
                         currentBuild.result = 'SUCCESS'
                     }
                 }
             }
         }
+
 
 
 

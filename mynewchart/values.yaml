@@ -13,7 +13,7 @@ flask:
     MYSQL_HOST: db
     MYSQL_DATABASE: flask_db
   
-  # Service configuration for Flask
+  # Service configuration fosr Flask
   service:
     testing:
       name: flask-service-testing

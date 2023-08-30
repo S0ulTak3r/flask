@@ -7,7 +7,7 @@ pipeline
 
     environment 
     {
-        // Define environment variables that will be used throughout the pipeline
+        // Define envdironment variables that will be used throughout the pipeline
         SSHKEYLOCATION = "${params.SSHKEYLOCATION}"
         DOCKERFLASKIMAGE = "${params.DOCKERFLASKIMAGE}"
         DOCKERDBIMAGE = "${params.DOCKERDBIMAGE}"
@@ -40,7 +40,7 @@ pipeline
     
     stages 
     {
-
+        //
         stage('Version Check') 
         {
             steps 
@@ -148,7 +148,7 @@ pipeline
             {
                 script 
                 {
-                    def jsonText = readFile("./${env.GITROOTFOLDER}/VersionControl/versions.json")
+                    def jsonText = readFile("./${env.GITROOTFOLDER}/VersionControl/DockerComposePipeline/versions.json")
                     echo "JSON Content: $jsonText"
                     def jsonSlurper = new groovy.json.JsonSlurper()
                     echo "jsonSlurper: $jsonSlurper"
@@ -437,14 +437,14 @@ pipeline
 
                         // Update the versions.json file using jq
                         sh """
-                            jq '.flask = \"${env.RELEVANT_DOCKER_TAGFLASK}\" | .database = \"${env.RELEVANT_DOCKER_TAGDB}\"' ./${env.GITROOTFOLDER}/VersionControl/versions.json > ./${env.GITROOTFOLDER}/VersionControl/tmp_versions.json
-                            mv ./${env.GITROOTFOLDER}/VersionControl/tmp_versions.json ./${env.GITROOTFOLDER}/VersionControl/versions.json
+                            jq '.flask = \"${env.RELEVANT_DOCKER_TAGFLASK}\" | .database = \"${env.RELEVANT_DOCKER_TAGDB}\"' ./${env.GITROOTFOLDER}/VersionControl/DockerComposePipeline/versions.json > ./${env.GITROOTFOLDER}/VersionControl/DockerComposePipeline/tmp_versions.json
+                            mv ./${env.GITROOTFOLDER}/VersionControl/DockerComposePipeline/tmp_versions.json ./${env.GITROOTFOLDER}/VersionControl/DockerComposePipeline/versions.json
                         """
 
                         //Optional: Commit and push the change to the repository
                         sh """
                             cd ${env.GITROOTFOLDER}/
-                            git add ./VersionControl/versions.json
+                            git add ./VersionControl/DockerComposePipeline/versions.json
                             git commit -m 'Update versions after successful deployment'
                             git push origin main
                         """

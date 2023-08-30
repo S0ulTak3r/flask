@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: flask-container
-          image: {{ .Values.flask.image.repository }}:{{ .Values.flask.image.tag }}
+          image: {{ .Values.flask.image.repository }}:{{ default .Values.DefaultVersionProduction.flask .Values.flask.image.tag }}
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
@@ -44,7 +44,7 @@ spec:
     spec:
       containers:
         - name: mysql-container
-          image: {{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}
+          image: {{ .Values.mysql.image.repository }}:{{ default .Values.DefaultVersionProduction.mysql .Values.mysql.image.tag }}
           imagePullPolicy: Always
           ports:
             - containerPort: 3306

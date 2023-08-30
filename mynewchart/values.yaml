@@ -4,7 +4,7 @@ flask:
   replicaCount: 1
   image:
     repository: s0ultak3r/dockerflask
-    tag: latest
+    tag: ""
   
   # Environment variables for Flask application
   environment:
@@ -31,7 +31,7 @@ mysql:
   replicaCount: 1
   image:
     repository: s0ultak3r/dockerdb
-    tag: latest
+    tag: ""
   
   # Environment variables for MySQL
   environment:
@@ -85,3 +85,7 @@ grafana:
     accessModes:
       - ReadWriteOnce
     name: grafana-pvc
+
+DefaultVersionProduction:
+  flask: "1.239"
+  mysql: "1.239"

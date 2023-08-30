@@ -45,7 +45,45 @@ pipeline
         pollSCM('*/1 * * * *')
     }
 
-    stages {
+    stages 
+    {
+
+        //
+        stage('Version Check') 
+        {
+            steps 
+            {
+                script 
+                {
+                    if (params.RELEVANTDOCKERTAGDB == "" && params.RELEVANTDOCKERTAGFLASK == "" ) 
+                    {
+                        echo "No version specified for rollback/upgrade, getting latest versionS from file"
+                    }
+                    else
+                    {
+                        
+                        echo "Version specified for rollback/upgrade"
+                        if (params.RELEVANTDOCKERTAGFLASK != "")
+                        {
+                            echo "if Deploying version for flask: ${params.RELEVANTDOCKERTAGFLASK}"
+                        }
+                        else
+                        {
+                            echo "Deployment Not Changed For Flask, Will Use Latest Version From File"
+                        }
+                        if (params.RELEVANTDOCKERTAGDB != "")
+                        {
+                            echo "if Deploying version for db: ${params.RELEVANTDOCKERTAGDB}"
+                        }
+                        else
+                        {
+                            echo "Deployment Not Changed For DB, Will Use Latest Version From File"
+                        }
+                    } 
+                }
+            }
+        }
+
         // Initialize a proxy for subsequent operations
         stage('start proxy') 
         {
@@ -67,10 +105,11 @@ pipeline
                 script 
                 {
                     // Determine if there have been any changes to the repository. If not, set the NO_CHANGES environment variable to true
-                    pipelinefunctions.checkChanges()
+                    pipelinefunctions.checkChanges("Jenkinsfile-dockercompose22")
                 }
             }
         }
+
 
         // Clean up the workspace to ensure a fresh environment for this run, and remove outdated docker images
         stage('Cleanup') 
@@ -128,6 +167,47 @@ pipeline
             }
         }
 
+
+        stage('Setup') 
+        {
+            steps 
+            {
+                script 
+                {
+                    def jsonText = readFile("./${env.GITROOTFOLDER}/VersionControl/GoogleKubernetesPipeline/versions.json")
+                    echo "JSON Content: $jsonText"
+                    def jsonSlurper = new groovy.json.JsonSlurper()
+                    echo "jsonSlurper: $jsonSlurper"
+                    def versions = jsonSlurper.parseText(jsonText)
+
+                    echo "Flask version: ${versions.flask}"
+                    echo "Database version: ${versions.database}"
+
+                    
+                    if (params.RELEVANTDOCKERTAGFLASK == "") 
+                    {
+                        env.RELEVANT_DOCKER_TAGFLASK = "${versions.flask}"
+                    } 
+                    else 
+                    {
+                        env.RELEVANT_DOCKER_TAGFLASK = params.RELEVANTDOCKERTAGFLASK
+                    }
+
+                    if (params.RELEVANTDOCKERTAGDB == "") 
+                    {
+                        env.RELEVANT_DOCKER_TAGDB = "${versions.database}"
+                    } 
+                    else 
+                    {
+                        env.RELEVANT_DOCKER_TAGDB = params.RELEVANTDOCKERTAGDB
+                    }
+
+                    echo "Deploying Flask version: ${env.RELEVANT_DOCKER_TAGFLASK}"  // Updated variable reference
+                    echo "Deploying DB version: ${env.RELEVANT_DOCKER_TAGDB}"        // Updated variable reference
+                }
+            }
+        }
+
         // Install required dependencies for the project
         stage('Install Dependencies') 
         {
@@ -164,7 +244,7 @@ pipeline
             }
         }
 
-        // Log in to DockerHub to enable pushing of Docker images
+        // Log in to DockersHub to enable pushing of Docker images
         stage('Docker Login') 
         {
             when 
@@ -194,19 +274,68 @@ pipeline
             {
                 script 
                 {
+                    def newFlaskTag = null
+                    def newDBTag = null
                     // Build Docker images for the Flask application and the database in parallel to save time
                     // If there are relevant changes detected in the source code, the images will also be pushed to DockerHub
                     parallel(
                         "Build-create dockerFlask image and push": {
-                            dockerfunctions.BuildAndPush(env.DOCKERFLASKIMAGE, "./${env.GITROOTFOLDER}/${env.FLASKBUILDFOLDER}")
+                            newFlaskTag = dockerfunctions.BuildAndPush(env.DOCKERFLASKIMAGE, "./${env.GITROOTFOLDER}/${env.FLASKBUILDFOLDER}")
                         },
                         "Build-create dockerDB image and push": {
-                            dockerfunctions.BuildAndPush(env.DOCKERDBIMAGE, "./${env.GITROOTFOLDER}/${env.DBBUILDFOLDER}")
+                            newDBTag = dockerfunctions.BuildAndPush(env.DOCKERDBIMAGE, "./${env.GITROOTFOLDER}/${env.DBBUILDFOLDER}")
                         }
                     )
+
+                    // Sequentially prompt user for each Docker image with a new tag
+                    if (newFlaskTag != null) {
+                        def userInput = timeout(time: 5, unit: 'MINUTES') {
+                            input(
+                                id: 'deployConfirmationFlask',
+                                message: 'new flask tag detected, deploy this if all test succeed?',
+                                parameters: [ choice(choices: ['Yes', 'No'], description: 'Proceed with deployment?', name: 'decision') ]
+                            )
+                        }
+                        if (userInput == 'Yes') {
+                            echo "updating production tag to ${newFlaskTag}"
+                            env.RELEVANT_DOCKER_TAGFLASK = newFlaskTag
+                        } else {
+                            echo "production tag not updated to latest build version"
+                        }
+                    }
+                    
+                    if (newDBTag != null) {
+                        def userInput = timeout(time: 5, unit: 'MINUTES') {
+                            input(
+                                id: 'deployConfirmationDB',
+                                message: 'new db tag detected, deploy this if all test succeed?',
+                                parameters: [ choice(choices: ['Yes', 'No'], description: 'Proceed with deployment?', name: 'decision') ]
+                            )
+                        }
+                        if (userInput == 'Yes') {
+                            echo "updating production tag to ${newDBTag}"
+                            env.RELEVANT_DOCKER_TAGDB = newDBTag
+                        } else {
+                            echo "production tag not updated to latest build version"
+                        }
+                    }
                 }
             }
         }
+
+
+        stage("Testing Images Versions")
+        {
+            steps
+            {
+                script
+                {
+                    echo "flask test image version: ${env.RELEVANT_DOCKER_TAGFLASK}"
+                    echo "db test image version: ${env.RELEVANT_DOCKER_TAGDB}"
+                }
+            }
+        }
+
 
         // Deploy the application to a testing environment using Helm
         stage('Deployment To Testing Environment') 
@@ -221,7 +350,7 @@ pipeline
                 script 
                 {
                     // Deploy the application to a Kubernetes testing environment using Helm, targeting a specific environment (e.g., "Testing")
-                    helmfunctions.deployToK8s("docker-desktop","myproject","./flask","Testing","flask-test")
+                    helmfunctions.deployToK8s("docker-desktop","myproject","./flask","Testing","flask-test",env.RELEVANT_DOCKER_TAGFLASK,env.RELEVANT_DOCKER_TAGDB)
 
                     // Retrieve the TCP port on which the Flask application is accessible in the testing environment
                     k8functions.getTcpPort("flask-service-testing")
@@ -284,6 +413,8 @@ pipeline
             }
         }
 
+
+
         // Deploy the application to a production environment using Helm
         stage('Deploying On Google Kubernetes Production') 
         {
@@ -296,11 +427,49 @@ pipeline
             {
                 script 
                 {
-                    // Deploy the application to a Kubernetes production environment using Helm, targeting a specific environment (e.g., "Production")
-                    helmfunctions.deployToK8s("gke_vernal-tracer-393305_me-west1-a_cluster-flask2","myproject","./flask","Production","flask-prod")
+                    def deployMessage = "Do you want to proceed with deployment?\nFlask Version: ${env.RELEVANT_DOCKER_TAGFLASK}\nDB Version: ${env.RELEVANT_DOCKER_TAGDB}"
+
+                    def userInput = timeout(time: 5, unit: 'MINUTES') {
+                        input(
+                            id: 'deployConfirmation',
+                            message: deployMessage,
+                            parameters: [
+                                booleanParam(defaultValue: false, description: 'Proceed with deployment?', name: 'deploy')
+                            ]
+                        )
+                    }
+
+                    if (userInput) 
+                    {
+                        echo "Deploying to production"
+                        // Deploy the application to a Kubernetes production environment using Helm, targeting a specific environment (e.g., "Production")
+                        helmfunctions.deployToK8s("gke_vernal-tracer-393305_me-west1-a_cluster-flask2","myproject","./flask","Production","flask-prod",env.RELEVANT_DOCKER_TAGFLASK,env.RELEVANT_DOCKER_TAGDB)
+                        // Retrieve detailed information about the production environment for logging or diagnostic purposes
+                        k8functions.getAllInfo()
+
+                        // Update the versions.json file using jq
+                        sh """
+                            jq '.flask = \"${env.RELEVANT_DOCKER_TAGFLASK}\" | .database = \"${env.RELEVANT_DOCKER_TAGDB}\"' ./${env.GITROOTFOLDER}/VersionControl/GoogleKubernetesPipeline/versions.json > ./${env.GITROOTFOLDER}/VersionControl/GoogleKubernetesPipeline/tmp_versions.json
+                            mv ./${env.GITROOTFOLDER}/VersionControl/DockerComposePipeline/tmp_versions.json ./${env.GITROOTFOLDER}/VersionControl/GoogleKubernetesPipeline/versions.json
+                        """
+
+
+                        //Optional: Commit and push the change to the repository
+                        sh """
+                            cd ${env.GITROOTFOLDER}/
+                            git add ./VersionControl/DockerComposePipeline/versions.json
+                            git commit -m 'Update versions after successful deployment'
+                            git push origin main
+                        """
+
+                    } 
+                    else 
+                    {
+                        echo "Deployment skipped by user."
+                        currentBuild.result = 'SUCCESS'
+                    }
+
                     
-                    // Retrieve detailed information about the production environment for logging or diagnostic purposes
-                    k8functions.getAllInfo()
                 }
             }
         }

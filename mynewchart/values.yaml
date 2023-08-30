@@ -6,7 +6,7 @@ flask:
     repository: s0ultak3r/dockerflask
     tag: ""
   
-  # Environment variables for Flask application
+  # Environmesnt variables for Flask application
   environment:
     MYSQL_PASSWORD: password
     MYSQL_USER: root

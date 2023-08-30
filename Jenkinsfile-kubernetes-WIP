@@ -453,14 +453,22 @@ pipeline
                             mv ./${env.GITROOTFOLDER}/VersionControl/GoogleKubernetesPipeline/tmp_versions.json ./${env.GITROOTFOLDER}/VersionControl/GoogleKubernetesPipeline/versions.json
                         """
 
+                        try 
+                        {
+                            //Optional: Commit and push the change to the repository
+                            sh """
+                                cd ${env.GITROOTFOLDER}/
+                                git add ./VersionControl/GoogleKubernetesPipeline/versions.json
+                                git commit -m 'Update versions after successful deployment'
+                                git push origin main
+                            """
+                        }
+                        catch
+                        {
+                            // If the commit fails, print a message to the console and continue with the pipeline
+                            echo "Commit failed, meaning the version didnt change from what is stated in the file!,continuing with pipeline"
+                        }
 
-                        //Optional: Commit and push the change to the repository
-                        sh """
-                            cd ${env.GITROOTFOLDER}/
-                            git add ./VersionControl/GoogleKubernetesPipeline/versions.json
-                            git commit -m 'Update versions after successful deployment'
-                            git push origin main
-                        """
 
                     } 
                     else 

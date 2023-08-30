@@ -9,7 +9,7 @@ import time
 import requests
 import socket
 
-# Prometheus imports
+# Prometsheus imports
 from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 
 

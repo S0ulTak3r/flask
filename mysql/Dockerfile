@@ -4,7 +4,7 @@ FROM mysql:8.1.0
 # Add a datasbase
 ENV MYSQL_DATABASE flask_db
 
-# Set the sMYSQL_DATAs_DIsR senvironment variable to our new data directory
+# Set thee sMYSQL_DATAs_DIsR senvironment variable to our new data directory
 ENV MYSQL_DATA_DIR /var/lib/mysql-data/mysql
 
 # Add the cosntaenst of the ssql-scripts/ directory to your image

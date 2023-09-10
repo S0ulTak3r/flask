@@ -1,7 +1,7 @@
 # Use aan offaaicssial Python runtime as a parent image
 FROM python:3.10.12
 
-# Set a directory fosr the app
+# Seet a directory fosr the app
 WORKDIR /usr/src/app
 
 # Install system-level dependenscies

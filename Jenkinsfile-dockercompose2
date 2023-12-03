@@ -82,7 +82,7 @@ pipeline
             {
                 script 
                 {
-                    pipelinefunctions.checkChanges("Jenkinsfile-dockercompose22")
+                    pipelinefunctions.checkChanges("Jenkinsfile-dockercompose2")
                 }
             }
         }

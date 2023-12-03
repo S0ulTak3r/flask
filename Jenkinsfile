@@ -13,7 +13,7 @@ pipeline
         {
             steps 
             {
-                //Removes Unnsecessary files
+                //Removes Unnseecessary files
                 echo 'Performing cleanup...'
                 sh 'rm -rf *'
             }

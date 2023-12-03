@@ -283,6 +283,10 @@ pipeline
 
         stage("random")
         {
+            when 
+            {
+                expression { return env.NO_CHANGES != "true" }
+            }
             steps
             {
                 script

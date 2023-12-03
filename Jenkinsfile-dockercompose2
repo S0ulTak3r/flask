@@ -435,19 +435,30 @@ pipeline
                         dockerfunctions.PullDockerCompose(env.publicProdIp, env.SSHKEYLOCATION, env.RELEVANT_DOCKER_TAGFLASK, env.RELEVANT_DOCKER_TAGDB, "./docker-compose-prod.yml")
                         dockerfunctions.StartDockerCompose(env.publicProdIp, env.SSHKEYLOCATION, env.RELEVANT_DOCKER_TAGFLASK, env.RELEVANT_DOCKER_TAGDB, "./docker-compose-prod.yml")
 
+
                         // Update the versions.json file using jq
                         sh """
                             jq '.flask = \"${env.RELEVANT_DOCKER_TAGFLASK}\" | .database = \"${env.RELEVANT_DOCKER_TAGDB}\"' ./${env.GITROOTFOLDER}/VersionControl/DockerComposePipeline/versions.json > ./${env.GITROOTFOLDER}/VersionControl/DockerComposePipeline/tmp_versions.json
                             mv ./${env.GITROOTFOLDER}/VersionControl/DockerComposePipeline/tmp_versions.json ./${env.GITROOTFOLDER}/VersionControl/DockerComposePipeline/versions.json
                         """
 
-                        //Optional: Commit and push the change to the repository
-                        sh """
-                            cd ${env.GITROOTFOLDER}/
-                            git add ./VersionControl/DockerComposePipeline/versions.json
-                            git commit -m 'Update versions after successful deployment'
-                            git push origin main
-                        """
+
+                        try 
+                        {
+                            //Optional: Commit and push the change to the repository
+                            sh """
+                                cd ${env.GITROOTFOLDER}/
+                                git add ./VersionControl/DockerComposePipeline/versions.json
+                                git commit -m 'Update versions after successful deployment'
+                                git push origin main
+                            """
+                        }
+                        catch (e)
+                        {
+                            // If the commit fails, print a message to the console and continue with the pipeline
+                            echo "Commit failed, meaning the version didnt change from what is stated in the file!,continuing with pipeline"
+                        }
+
                     } else {
                         echo "Deployment skipped by user."
                         currentBuild.result = 'SUCCESS'
@@ -455,10 +466,6 @@ pipeline
                 }
             }
         }
-
-
-
-
 
     }
 }
